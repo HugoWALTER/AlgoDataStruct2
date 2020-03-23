@@ -4,6 +4,15 @@ from PIL import Image, ImageTk
 import os
 
 
+class Vector:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+    def displayVector(self):
+        print(str(self.x)+';'+str(self.y))
+
+
 class Window(tk.Frame):
     def __init__(self, master=None):
         tk.Frame.__init__(self, master)
@@ -18,11 +27,17 @@ class Window(tk.Frame):
         menu.add_cascade(label="File", menu=file_menu)
 
         self.canvas = tk.Canvas(self)
+        self.canvas.bind("<Button-1>", self.detectLeftClic)
+        self.canvas.bind("<Button-3>", self.detectRightClic)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.imageMap = None  # none yet
         self.imageRobot = None  # none yet
+        self.renderRobot = None  # none yet
+        self.startPointDefined = False
+        self.goalPointDefined = False
 
-    # Where I open my file
+        # Where I open my file
+
     def openFileMap(self):
         filename = filedialog.askopenfilename(initialdir=os.getcwd(
         ), title="Select BMP File", filetypes=[("BMP Files", "*.bmp")])
@@ -60,11 +75,28 @@ class Window(tk.Frame):
             load)  # must keep a reference to this
         if self.imageRobot is not None:  # if an image was already loaded
             self.canvas.delete(self.imageRobot)  # remove the previous image
-        # place robot on left click
-        self.imageRobot = self.canvas.create_image(
-            (600, 600), image=self.renderRobot)
 
-        # root.geometry("%dx%d" % (w, h))
+    def _create_circle(self, x, y, r, **kwargs):
+        return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
+    tk.Canvas.create_circle = _create_circle
+
+    def detectLeftClic(self, event):
+        print("left clicked at", event.x, event.y)
+        if self.renderRobot is not None and self.startPointDefined == False:
+            self.imageRobot = self.canvas.create_image(
+                (event.x, event.y), image=self.renderRobot)
+            StartCoordinate = Vector(event.x, event.y)
+            Vector.displayVector(StartCoordinate)
+            self.startPointDefined = True
+
+    def detectRightClic(self, event):
+        print("right clicked at", event.x, event.y)
+        if self.startPointDefined == True:
+            self.canvas.create_circle(
+                event.x, event.y, 10, fill="red", width=1)
+            GoalCoordinate = Vector(event.x, event.y)
+            Vector.displayVector(GoalCoordinate)
+            self.goalPointDefined = True
 
 
 root = tk.Tk()
