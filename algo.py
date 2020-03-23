@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
 import os
+import time
 
 
 class Vector:
@@ -20,7 +21,7 @@ class Window(tk.Frame):
         menu = tk.Menu(self.master)
         master.config(menu=menu)
 
-        file_menu = tk.Menu(menu)
+        file_menu = tk.Menu(menu, tearoff=0)
         file_menu.add_command(label="Load Map", command=self.openFileMap)
         file_menu.add_command(label="Load Robot", command=self.openFileRobot)
         file_menu.add_command(label="Exit", command=self.quit)
@@ -30,9 +31,11 @@ class Window(tk.Frame):
         self.canvas.bind("<Button-1>", self.detectLeftClic)
         self.canvas.bind("<Button-3>", self.detectRightClic)
         self.canvas.pack(fill=tk.BOTH, expand=True)
-        self.imageMap = None  # none yet
-        self.imageRobot = None  # none yet
-        self.renderRobot = None  # none yet
+        self.imageMap = None
+        self.imageRobot = None
+        self.renderRobot = None
+        self.StartCoordinate = None
+        self.GoalCoordinate = None
         self.startPointDefined = False
         self.goalPointDefined = False
 
@@ -42,18 +45,16 @@ class Window(tk.Frame):
         filename = filedialog.askopenfilename(initialdir=os.getcwd(
         ), title="Select BMP File", filetypes=[("BMP Files", "*.bmp")])
         if not filename:
-            return  # user cancelled; stop this method
+            return
 
         load = Image.open(filename)
         load = load.resize((1280, 720), Image.ANTIALIAS)
         w, h = load.size
-        print(w)
-        print(h)
         self.renderMap = ImageTk.PhotoImage(
-            load)  # must keep a reference to this
+            load)
 
-        if self.imageMap is not None:  # if an image was already loaded
-            self.canvas.delete(self.imageMap)  # remove the previous image
+        if self.imageMap is not None:
+            self.canvas.delete(self.imageMap)
 
         self.imageMap = self.canvas.create_image(
             (w / 2, h / 2), image=self.renderMap)
@@ -64,17 +65,15 @@ class Window(tk.Frame):
         filename = filedialog.askopenfilename(initialdir=os.getcwd(
         ), title="Select BMP File", filetypes=[("BMP Files", "*.bmp")])
         if not filename:
-            return  # user cancelled; stop this method
+            return
 
         load = Image.open(filename)
         load = load.resize((25, 25), Image.ANTIALIAS)
         w, h = load.size
-        print(w)
-        print(h)
         self.renderRobot = ImageTk.PhotoImage(
-            load)  # must keep a reference to this
-        if self.imageRobot is not None:  # if an image was already loaded
-            self.canvas.delete(self.imageRobot)  # remove the previous image
+            load)
+        if self.imageRobot is not None:
+            self.canvas.delete(self.imageRobot)
 
     def _create_circle(self, x, y, r, **kwargs):
         return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
@@ -85,18 +84,31 @@ class Window(tk.Frame):
         if self.renderRobot is not None and self.startPointDefined == False:
             self.imageRobot = self.canvas.create_image(
                 (event.x, event.y), image=self.renderRobot)
-            StartCoordinate = Vector(event.x, event.y)
-            Vector.displayVector(StartCoordinate)
+            self.StartCoordinate = Vector(event.x, event.y)
+            Vector.displayVector(self.StartCoordinate)
             self.startPointDefined = True
 
     def detectRightClic(self, event):
         print("right clicked at", event.x, event.y)
-        if self.startPointDefined == True:
+        if self.startPointDefined == True and self.goalPointDefined == False:
             self.canvas.create_circle(
                 event.x, event.y, 10, fill="red", width=1)
-            GoalCoordinate = Vector(event.x, event.y)
-            Vector.displayVector(GoalCoordinate)
+            self.GoalCoordinate = Vector(event.x, event.y)
+            Vector.displayVector(self.GoalCoordinate)
             self.goalPointDefined = True
+            self.launchGame()
+
+    def launchGame(self):
+        print("Launch Game")
+        print("Coord Start: ")
+        Vector.displayVector(self.StartCoordinate)
+        print("Coord Goal: ")
+        Vector.displayVector(self.GoalCoordinate)
+        self.canvas.move(self.imageRobot, 10, 0)
+        # time.sleep(1)
+        # do simple loop to move start to goal pos (x & y)
+        # getInfosbypixel from BMP
+        # do algo to move only if x + 1 & y + 1 are white
 
 
 root = tk.Tk()
