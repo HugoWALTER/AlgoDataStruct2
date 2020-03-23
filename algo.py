@@ -52,13 +52,17 @@ class Window(tk.Frame):
             return  # user cancelled; stop this method
 
         load = Image.open(filename)
+        load = load.resize((25, 25), Image.ANTIALIAS)
         w, h = load.size
         print(w)
         print(h)
         self.renderRobot = ImageTk.PhotoImage(
             load)  # must keep a reference to this
+        if self.imageRobot is not None:  # if an image was already loaded
+            self.canvas.delete(self.imageRobot)  # remove the previous image
+        # place robot on left click
         self.imageRobot = self.canvas.create_image(
-            (w / 2, h / 2), image=self.renderRobot)
+            (600, 600), image=self.renderRobot)
 
         # root.geometry("%dx%d" % (w, h))
 
@@ -69,3 +73,6 @@ root.title("BMP Image GUI")
 app = Window(root)
 app.pack(fill=tk.BOTH, expand=1)
 root.mainloop()
+
+# on right click place robot coordinates
+# on left click place goal point (launch game) verif que le robot a été placé
