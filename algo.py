@@ -168,9 +168,10 @@ class Window(tk.Frame):
         # do algo to move only if x + 1 & y + 1 are white
 
 
-root = tk.Tk()
-root.geometry("%dx%d" % (300, 300))
-root.title("Rumba AI GUI")
-app = Window(root)
-app.pack(fill=tk.BOTH, expand=1)
-root.mainloop()
+if __name__ == '__main__':
+    root = tk.Tk()
+    root.geometry("%dx%d" % (300, 300))
+    root.title("Rumba AI GUI")
+    app = Window(root)
+    app.pack(fill=tk.BOTH, expand=1)
+    root.mainloop()
