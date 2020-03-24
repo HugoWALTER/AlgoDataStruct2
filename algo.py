@@ -41,6 +41,7 @@ class Window(tk.Frame):
         self.GoalCoordinate = None
         self.startPointDefined = False
         self.goalPointDefined = False
+        self.gameStarted = False
         self.chargeDefaultMap()
         self.chargeDefaultRobot()
 
@@ -55,6 +56,7 @@ class Window(tk.Frame):
         self.GoalCoordinate = None
         self.startPointDefined = False
         self.goalPointDefined = False
+        self.gameStarted = False
 
     def chargeDefaultMap(self):
         self.storedMap = Image.open("Room.bmp", "r")
@@ -81,7 +83,6 @@ class Window(tk.Frame):
             self.canvas.delete(self.imageRobot)
 
     def openFileMap(self):
-        # reset game
         self.resetGame()
         filename = filedialog.askopenfilename(initialdir=os.getcwd(
         ), title="Select MAP File", filetypes=[("BMP Files", "*.bmp")])
@@ -104,18 +105,20 @@ class Window(tk.Frame):
         self.openFileRobot()
 
     def openFileRobot(self):
-        filename = filedialog.askopenfilename(initialdir=os.getcwd(
-        ), title="Select ROBOT File", filetypes=[("BMP Files", "*.bmp")])
-        if not filename:
-            return
+        if self.gameStarted == False:
+            filename = filedialog.askopenfilename(initialdir=os.getcwd(
+            ), title="Select ROBOT File", filetypes=[("BMP Files", "*.bmp")])
+            if not filename:
+                return
 
-        self.storedRobot = Image.open(filename)
-        self.storedRobot = self.storedRobot.resize((25, 25), Image.ANTIALIAS)
-        w, h = self.storedRobot.size
-        self.renderRobot = ImageTk.PhotoImage(
-            self.storedRobot)
-        if self.imageRobot is not None:
-            self.canvas.delete(self.imageRobot)
+            self.storedRobot = Image.open(filename)
+            self.storedRobot = self.storedRobot.resize(
+                (25, 25), Image.ANTIALIAS)
+            w, h = self.storedRobot.size
+            self.renderRobot = ImageTk.PhotoImage(
+                self.storedRobot)
+            if self.imageRobot is not None:
+                self.canvas.delete(self.imageRobot)
 
     def _create_circle(self, x, y, r, **kwargs):
         return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
@@ -156,6 +159,7 @@ class Window(tk.Frame):
 
     def launchGame(self):
         print("Launch Game")
+        self.gameStarted = True
         print("Coord Start: ")
         Vector.displayVector(self.StartCoordinate)
         print("Coord Goal: ")
