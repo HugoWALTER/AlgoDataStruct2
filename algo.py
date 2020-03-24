@@ -35,24 +35,33 @@ class Window(tk.Frame):
         self.imageRobot = None
         self.renderMap = None
         self.renderRobot = None
+        self.storedMap = None
+        self.storedRobot = None
+        self.StartCoordinate = None
+        self.GoalCoordinate = None
+        self.startPointDefined = False
+        self.goalPointDefined = False
+        self.chargeDefaultMap()
+        self.chargeDefaultRobot()
+
+    def resetGame(self):
+        self.imageMap = None
+        self.imageRobot = None
+        self.renderMap = None
+        self.renderRobot = None
+        self.storedMap = None
+        self.storedRobot = None
         self.StartCoordinate = None
         self.GoalCoordinate = None
         self.startPointDefined = False
         self.goalPointDefined = False
 
-        # Where I open my file
-
-    def openFileMap(self):
-        filename = filedialog.askopenfilename(initialdir=os.getcwd(
-        ), title="Select BMP File", filetypes=[("BMP Files", "*.bmp")])
-        if not filename:
-            return
-
-        load = Image.open(filename)
-        load = load.resize((1280, 720), Image.ANTIALIAS)
-        w, h = load.size
+    def chargeDefaultMap(self):
+        self.storedMap = Image.open("Room.bmp", "r")
+        self.storedMap = self.storedMap.resize((1280, 720), Image.ANTIALIAS)
+        w, h = self.storedMap.size
         self.renderMap = ImageTk.PhotoImage(
-            load)
+            self.storedMap)
 
         if self.imageMap is not None:
             self.canvas.delete(self.imageMap)
@@ -62,17 +71,49 @@ class Window(tk.Frame):
 
         root.geometry("%dx%d" % (w, h))
 
-    def openFileRobot(self):
+    def chargeDefaultRobot(self):
+        self.storedRobot = Image.open("robot.bmp", "r")
+        self.storedRobot = self.storedRobot.resize((25, 25), Image.ANTIALIAS)
+        w, h = self.storedRobot.size
+        self.renderRobot = ImageTk.PhotoImage(
+            self.storedRobot)
+        if self.imageRobot is not None:
+            self.canvas.delete(self.imageRobot)
+
+    def openFileMap(self):
+        # reset game
+        self.resetGame()
         filename = filedialog.askopenfilename(initialdir=os.getcwd(
-        ), title="Select BMP File", filetypes=[("BMP Files", "*.bmp")])
+        ), title="Select MAP File", filetypes=[("BMP Files", "*.bmp")])
         if not filename:
             return
 
-        load = Image.open(filename)
-        load = load.resize((25, 25), Image.ANTIALIAS)
-        w, h = load.size
+        self.storedMap = Image.open(filename)
+        self.storedMap = self.storedMap.resize((1280, 720), Image.ANTIALIAS)
+        w, h = self.storedMap.size
+        self.renderMap = ImageTk.PhotoImage(
+            self.storedMap)
+
+        if self.imageMap is not None:
+            self.canvas.delete(self.imageMap)
+
+        self.imageMap = self.canvas.create_image(
+            (w / 2, h / 2), image=self.renderMap)
+
+        root.geometry("%dx%d" % (w, h))
+        self.openFileRobot()
+
+    def openFileRobot(self):
+        filename = filedialog.askopenfilename(initialdir=os.getcwd(
+        ), title="Select ROBOT File", filetypes=[("BMP Files", "*.bmp")])
+        if not filename:
+            return
+
+        self.storedRobot = Image.open(filename)
+        self.storedRobot = self.storedRobot.resize((25, 25), Image.ANTIALIAS)
+        w, h = self.storedRobot.size
         self.renderRobot = ImageTk.PhotoImage(
-            load)
+            self.storedRobot)
         if self.imageRobot is not None:
             self.canvas.delete(self.imageRobot)
 
@@ -82,6 +123,9 @@ class Window(tk.Frame):
 
     def detectLeftClic(self, event):
         print("left clicked at", event.x, event.y)
+        rgb_im = self.storedMap.convert('RGB')
+        r, g, b = rgb_im.getpixel((event.x, event.y))
+        print(r, g, b)
         if self.renderMap is not None and self.renderRobot is not None and self.startPointDefined == False:
             self.imageRobot = self.canvas.create_image(
                 (event.x, event.y), image=self.renderRobot)
@@ -99,6 +143,14 @@ class Window(tk.Frame):
             self.goalPointDefined = True
             self.launchGame()
 
+    def isWin(self):
+        if self.StartCoordinate.x == self.GoalCoordinate.x and self.StartCoordinate.y == self.GoalCoordinate.y:
+            print("ITS WIN")
+            return True
+        else:
+            print("ITS LOOSE")
+            return False
+
     def launchGame(self):
         print("Launch Game")
         print("Coord Start: ")
@@ -106,6 +158,7 @@ class Window(tk.Frame):
         print("Coord Goal: ")
         Vector.displayVector(self.GoalCoordinate)
         self.canvas.move(self.imageRobot, 10, 0)
+
         # time.sleep(1)
         # do simple loop to move start to goal pos (x & y)
         # getInfosbypixel from BMP
