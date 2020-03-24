@@ -33,6 +33,7 @@ class Window(tk.Frame):
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.imageMap = None
         self.imageRobot = None
+        self.renderMap = None
         self.renderRobot = None
         self.StartCoordinate = None
         self.GoalCoordinate = None
@@ -81,7 +82,7 @@ class Window(tk.Frame):
 
     def detectLeftClic(self, event):
         print("left clicked at", event.x, event.y)
-        if self.renderRobot is not None and self.startPointDefined == False:
+        if self.renderMap is not None and self.renderRobot is not None and self.startPointDefined == False:
             self.imageRobot = self.canvas.create_image(
                 (event.x, event.y), image=self.renderRobot)
             self.StartCoordinate = Vector(event.x, event.y)
@@ -117,6 +118,3 @@ root.title("BMP Image GUI")
 app = Window(root)
 app.pack(fill=tk.BOTH, expand=1)
 root.mainloop()
-
-# on right click place robot coordinates
-# on left click place goal point (launch game) verif que le robot a été placé
