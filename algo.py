@@ -121,11 +121,14 @@ class Window(tk.Frame):
         return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
     tk.Canvas.create_circle = _create_circle
 
+    def getColorPixelAtPos(self, x, y):
+        rgb_im = self.storedMap.convert('RGB')
+        r, g, b = rgb_im.getpixel((x, y))
+        print(r, g, b)
+
     def detectLeftClic(self, event):
         print("left clicked at", event.x, event.y)
-        rgb_im = self.storedMap.convert('RGB')
-        r, g, b = rgb_im.getpixel((event.x, event.y))
-        print(r, g, b)
+        self.getColorPixelAtPos(event.x, event.y)
         if self.renderMap is not None and self.renderRobot is not None and self.startPointDefined == False:
             self.imageRobot = self.canvas.create_image(
                 (event.x, event.y), image=self.renderRobot)
@@ -167,7 +170,7 @@ class Window(tk.Frame):
 
 root = tk.Tk()
 root.geometry("%dx%d" % (300, 300))
-root.title("BMP Image GUI")
+root.title("Rumba AI GUI")
 app = Window(root)
 app.pack(fill=tk.BOTH, expand=1)
 root.mainloop()
