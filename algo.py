@@ -28,8 +28,8 @@ class Window(tk.Frame):
         menu.add_cascade(label="File", menu=file_menu)
 
         self.canvas = tk.Canvas(self)
-        self.canvas.bind("<Button-1>", self.detect_left_clic)
-        self.canvas.bind("<Button-3>", self.detect_right_clic)
+        self.canvas.bind("<Button-1>", self.detect_left_click)
+        self.canvas.bind("<Button-3>", self.detect_right_click)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.image_map = None
         self.image_robot = None
@@ -129,7 +129,7 @@ class Window(tk.Frame):
         r, g, b = rgb_im.getpixel((x, y))
         print(r, g, b)
 
-    def detect_left_clic(self, event):
+    def detect_left_click(self, event):
         print("left clicked at", event.x, event.y)
         self.get_color_pixel_at_pos(event.x, event.y)
         if self.render_map is not None and self.render_robot is not None and self.start_point_defined == False:
@@ -139,7 +139,7 @@ class Window(tk.Frame):
             Vector.display_vector(self.start_coordinate)
             self.start_point_defined = True
 
-    def detect_right_clic(self, event):
+    def detect_right_click(self, event):
         print("right clicked at", event.x, event.y)
         if self.start_point_defined == True and self.goal_point_defined == False:
             self.canvas.create_circle(
