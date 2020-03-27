@@ -230,3 +230,5 @@ if __name__ == '__main__':
     app = Window(root)
     app.pack(fill=tk.BOTH, expand=1)
     root.mainloop()
+
+# This project is made by Hugo WALTER
