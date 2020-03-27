@@ -34,7 +34,7 @@ class Window(tk.Frame):
         self.canvas = tk.Canvas(self)
         self.canvas.bind("<Button-1>", self.detect_left_click)
         self.canvas.bind("<Button-3>", self.detect_right_click)
-        self.canvas.bind("<Motion>", self.free_robot_placement)
+        self.canvas.bind("<Motion>", self.circle_cursor_placement)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.circle = None
         self.image_map = None
@@ -182,7 +182,7 @@ class Window(tk.Frame):
             self.hitbox_cursor_circle = self.canvas.bbox(self.circle)
             self.can_be_placed = False
 
-    def free_robot_placement(self, event):
+    def circle_cursor_placement(self, event):
         x, y = event.x + 3, event.y + 7
         radius = Window.CIRCLE_SIZE
         x_max = x + radius
@@ -223,7 +223,7 @@ class Window(tk.Frame):
         self.is_robot_free(event.x, event.y)
         if self.start_point_defined == True and self.goal_point_defined == False and self.can_be_placed == True:
             self.canvas.create_circle(
-                event.x, event.y, Window.CIRCLE_SIZE, fill="red", width=1)
+                event.x, event.y, Window.CIRCLE_SIZE, fill="yellow", width=1)
             self.goal_coordinate = Vector(event.x, event.y)
             Vector.display_vector(self.goal_coordinate)
             self.remove_circle_cursor()
