@@ -11,7 +11,8 @@
 
 -   [Git](https://git-scm.com/downloads)
 -   [Python](https://www.python.org/downloads/)
-Please install te packages below using pip :
+
+> Please install te packages below using pip :
 -   [TKinter]
 -   [Pillow]
 
