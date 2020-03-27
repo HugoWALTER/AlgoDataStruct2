@@ -23,6 +23,10 @@ Python 3.8 include a version of TKinter so you just have to install Pillow.
 You just need to follow the instructions below to make it work. You can simply run this app on local mode with python ./algo.py
 
 ``` bash
+# clone the project
+
+$ git clone https://github.com/HugoWALTER/AlgoDataStruct2
+
 # install dependencies
 $ pip install Pillow
 $ pip install Tkinter
