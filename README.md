@@ -34,7 +34,7 @@ $ pip install Tkinter
 $ python ./algo.py
 
 # use the programm: A default Map and robot are loaded so you can skip step 1.
-$ 1. Press File > Load Map to select a Map. A window explorer will open to select the Map and after a robot.
+$ 1. Click File > Load Map to select a Map. A window explorer will open to select the Map and after a robot.
 
 $ 2. Press Left Click when the circle is green to place the robot at a start point.
 

@@ -15,6 +15,11 @@ class Vector:
 
 
 class Window(tk.Frame):
+    MAP_SIZE_X = 1280
+    MAP_SIZE_Y = 720
+    ROBOT_SIZE = 25
+    CIRCLE_SIZE = 12
+
     def __init__(self, master=None):
         tk.Frame.__init__(self, master)
 
@@ -23,7 +28,6 @@ class Window(tk.Frame):
 
         file_menu = tk.Menu(menu, tearoff=0)
         file_menu.add_command(label="Load Map", command=self.open_file_map)
-        file_menu.add_command(label="Load Robot", command=self.open_file_robot)
         file_menu.add_command(label="Exit", command=self.quit)
         menu.add_cascade(label="File", menu=file_menu)
 
@@ -32,13 +36,15 @@ class Window(tk.Frame):
         self.canvas.bind("<Button-3>", self.detect_right_click)
         self.canvas.bind("<Motion>", self.free_robot_placement)
         self.canvas.pack(fill=tk.BOTH, expand=True)
-        self.circle = 0
+        self.circle = None
         self.image_map = None
         self.image_robot = None
         self.render_map = None
         self.render_robot = None
         self.stored_map = None
         self.stored_robot = None
+        self.hitbox_robot = None
+        self.hitbox_cursor_circle = None
         self.start_coordinate = None
         self.goal_coordinate = None
         self.start_point_defined = False
@@ -49,23 +55,28 @@ class Window(tk.Frame):
         self.charge_default_robot()
 
     def reset_game(self):
-        self.circle = 0
+        self.circle = None
         self.image_map = None
         self.image_robot = None
         self.render_map = None
         self.render_robot = None
         self.stored_map = None
         self.stored_robot = None
+        self.hitbox_robot = None
+        self.hitbox_cursor_circle = None
         self.start_coordinate = None
         self.goal_coordinate = None
         self.start_point_defined = False
         self.goal_point_defined = False
         self.game_started = False
         self.can_be_placed = False
+        self.canvas.delete("all")
+        self.canvas.bind("<Motion>", self.free_robot_placement)
 
     def charge_default_map(self):
         self.stored_map = Image.open("Room.bmp", "r")
-        self.stored_map = self.stored_map.resize((1280, 720), Image.ANTIALIAS)
+        self.stored_map = self.stored_map.resize(
+            (Window.MAP_SIZE_X, Window.MAP_SIZE_Y), Image.ANTIALIAS)
         w, h = self.stored_map.size
         self.render_map = ImageTk.PhotoImage(
             self.stored_map)
@@ -80,7 +91,8 @@ class Window(tk.Frame):
 
     def charge_default_robot(self):
         self.stored_robot = Image.open("robot.bmp", "r")
-        self.stored_robot = self.stored_robot.resize((25, 25), Image.ANTIALIAS)
+        self.stored_robot = self.stored_robot.resize(
+            (Window.ROBOT_SIZE, Window.ROBOT_SIZE), Image.ANTIALIAS)
         w, h = self.stored_robot.size
         self.render_robot = ImageTk.PhotoImage(
             self.stored_robot)
@@ -95,7 +107,8 @@ class Window(tk.Frame):
             return
 
         self.stored_map = Image.open(filename)
-        self.stored_map = self.stored_map.resize((1280, 720), Image.ANTIALIAS)
+        self.stored_map = self.stored_map.resize(
+            (Window.MAP_SIZE_X, Window.MAP_SIZE_Y), Image.ANTIALIAS)
         w, h = self.stored_map.size
         self.render_map = ImageTk.PhotoImage(
             self.stored_map)
@@ -110,7 +123,7 @@ class Window(tk.Frame):
         self.open_file_robot()
 
     def open_file_robot(self):
-        if self.game_started == False:
+        if self.game_started == False and self.image_robot is None:
             filename = filedialog.askopenfilename(initialdir=os.getcwd(
             ), title="Select ROBOT File", filetypes=[("BMP Files", "*.bmp")])
             if not filename:
@@ -118,7 +131,7 @@ class Window(tk.Frame):
 
             self.stored_robot = Image.open(filename)
             self.stored_robot = self.stored_robot.resize(
-                (25, 25), Image.ANTIALIAS)
+                (Window.ROBOT_SIZE, Window.ROBOT_SIZE), Image.ANTIALIAS)
             w, h = self.stored_robot.size
             self.render_robot = ImageTk.PhotoImage(
                 self.stored_robot)
@@ -130,24 +143,48 @@ class Window(tk.Frame):
     tk.Canvas.create_circle = _create_circle
 
     def get_color_pixel_at_pos(self, x, y):
-        rgb_im = self.stored_map.convert('RGB')
-        r, g, b = rgb_im.getpixel((x, y))
-        print(r, g, b)
+        rgb_img = self.stored_map.convert('RGB')
+        r, g, b = rgb_img.getpixel((x, y))
+        # print(r, g, b)
         return r, g, b
+
+    def is_robot_collide(self, x, y):
+        # TODO: define if circle cursor hit a black pixel in range
+        # if yes then user can't place the robot
+        # if no then user CAN place the robot // same for the endpoint
+        print(self.hitbox_cursor_circle)
+        return False
+
+    def is_pixel_white(self, x, y):
+        r, g, b = self.get_color_pixel_at_pos(x, y)
+        if r == 255 and g == 255 and b == 255:
+            # print("WHITE PIXEL")
+            return True
+        else:
+            # print("BLACK PIXEL")
+            return False
+
+    def is_robot_free(self, x, y):
+        if self.is_pixel_white(x, y) == True and self.is_robot_collide(x, y) == False:
+            return True
+        else:
+            return False
 
     def display_color_cursor(self, event):
         if self.is_robot_free(event.x, event.y) == True:
             self.circle = self.canvas.create_circle(
-                event.x, event.y, 10, fill="green", width=1)
+                event.x, event.y, Window.CIRCLE_SIZE, fill="green", width=1)
+            self.hitbox_cursor_circle = self.canvas.bbox(self.circle)
             self.can_be_placed = True
         else:
             self.circle = self.canvas.create_circle(
-                event.x, event.y, 10, fill="red", width=1)
+                event.x, event.y, Window.CIRCLE_SIZE, fill="red", width=1)
+            self.hitbox_cursor_circle = self.canvas.bbox(self.circle)
             self.can_be_placed = False
 
     def free_robot_placement(self, event):
         x, y = event.x + 3, event.y + 7
-        radius = 10
+        radius = Window.CIRCLE_SIZE
         x_max = x + radius
         x_min = x - radius
         y_max = y + radius
@@ -156,18 +193,19 @@ class Window(tk.Frame):
         self.canvas.delete(self.circle)
         self.display_color_cursor(event)
 
-    def is_robot_free(self, x, y):
-        r, g, b = self.get_color_pixel_at_pos(x, y)
-        if r == 255 and g == 255 and b == 255:
-            print("WHITE PIXEL")
-            return True
-        else:
-            print("BLACK PIXEL")
-            return False
-
     def remove_circle_cursor(self):
         self.canvas.delete(self.circle)
         self.canvas.unbind('<Motion>')
+
+    def define_robot_hitbox(self):
+        self.hitbox_robot = self.canvas.bbox(self.image_robot)
+        print("hitbox:", self.hitbox_robot)
+        print("hitbox: X1", self.hitbox_robot[0])
+        print("hitbox: Y1", self.hitbox_robot[1])
+        print("hitbox: X2", self.hitbox_robot[2])
+        print("hitbox: Y2", self.hitbox_robot[3])
+        # TODO: move hitbox when robot is moving
+        self.canvas.create_rectangle(self.hitbox_robot, outline="red", width=2)
 
     def detect_left_click(self, event):
         print("left clicked at", event.x, event.y)
@@ -177,6 +215,7 @@ class Window(tk.Frame):
                 (event.x, event.y), image=self.render_robot)
             self.start_coordinate = Vector(event.x, event.y)
             Vector.display_vector(self.start_coordinate)
+            self.define_robot_hitbox()
             self.start_point_defined = True
 
     def detect_right_click(self, event):
@@ -184,7 +223,7 @@ class Window(tk.Frame):
         self.is_robot_free(event.x, event.y)
         if self.start_point_defined == True and self.goal_point_defined == False and self.can_be_placed == True:
             self.canvas.create_circle(
-                event.x, event.y, 10, fill="red", width=1)
+                event.x, event.y, Window.CIRCLE_SIZE, fill="red", width=1)
             self.goal_coordinate = Vector(event.x, event.y)
             Vector.display_vector(self.goal_coordinate)
             self.remove_circle_cursor()
@@ -201,20 +240,20 @@ class Window(tk.Frame):
 
     def move(self):
         calc = Vector(self.start_coordinate.x, self.start_coordinate.y)
-        calc.x = self.start_coordinate.x + 10
-        calc.y = self.start_coordinate.y + 0
+        calc.x = self.start_coordinate.x + 0  # + or - depend on direction
+        calc.y = self.start_coordinate.y + 0  # + or - depend on direction
         self.canvas.coords(self.image_robot, calc.x, calc.y)
         print("New pos X:", calc.x)
         print("New pos Y:", calc.y)
         # self.is_win(calc)
-        # self.canvas.move(self.image_robot, 10, 0)
+        # loop in this function
 
     def launch_game(self):
         print("Launch Game")
         self.game_started = True
-        print("Coord Start: ")
+        print("Coord Start:")
         Vector.display_vector(self.start_coordinate)
-        print("Coord Goal: ")
+        print("Coord Goal:")
         Vector.display_vector(self.goal_coordinate)
         self.move()
 
