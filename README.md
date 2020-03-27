@@ -19,6 +19,7 @@
 
 ## Build Setup
 
+Python 3.8 include a version of TKinter so you just have to install Pillow.
 You just need to follow the instructions below to make it work. You can simply run this app on local mode with python ./algo.py
 
 ``` bash
@@ -36,9 +37,8 @@ $ 2. Press Left Click when the circle is green to place the robot at a start poi
 
 $ 3. Press Right Click to place the goal point.
 
-At any time you can quit.
-
-You can select a new map to reset the game (see 1.).
+# at any time you can quit.
+# you can select a new map to reset the game (see 1.).
 ```
 For detailed explanation on how things work, checkout [TKinter docs](https://docs.python.org/3/library/tk.html).
 
