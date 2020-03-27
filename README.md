@@ -24,7 +24,6 @@ You just need to follow the instructions below to make it work. You can simply r
 
 ``` bash
 # clone the project
-
 $ git clone https://github.com/HugoWALTER/AlgoDataStruct2
 
 # install dependencies
