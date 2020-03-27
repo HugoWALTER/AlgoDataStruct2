@@ -177,16 +177,17 @@ class Window(tk.Frame):
                 (event.x, event.y), image=self.render_robot)
             self.start_coordinate = Vector(event.x, event.y)
             Vector.display_vector(self.start_coordinate)
-            self.remove_circle_cursor()
             self.start_point_defined = True
 
     def detect_right_click(self, event):
         print("right clicked at", event.x, event.y)
-        if self.start_point_defined == True and self.goal_point_defined == False:
+        self.is_robot_free(event.x, event.y)
+        if self.start_point_defined == True and self.goal_point_defined == False and self.can_be_placed == True:
             self.canvas.create_circle(
                 event.x, event.y, 10, fill="red", width=1)
             self.goal_coordinate = Vector(event.x, event.y)
             Vector.display_vector(self.goal_coordinate)
+            self.remove_circle_cursor()
             self.goal_point_defined = True
             self.launch_game()
 
