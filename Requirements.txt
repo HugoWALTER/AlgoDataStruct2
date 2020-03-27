@@ -1,0 +1,3 @@
+placer le robot uniquement sur le point blanc
+faire une fonction si le pixel est blanc alors on peut placer sinon on ne peut pas
+unbind motion

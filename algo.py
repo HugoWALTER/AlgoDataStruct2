@@ -30,7 +30,9 @@ class Window(tk.Frame):
         self.canvas = tk.Canvas(self)
         self.canvas.bind("<Button-1>", self.detect_left_click)
         self.canvas.bind("<Button-3>", self.detect_right_click)
+        self.canvas.bind("<Motion>", self.free_robot_placement)
         self.canvas.pack(fill=tk.BOTH, expand=True)
+        self.circle = 0
         self.image_map = None
         self.image_robot = None
         self.render_map = None
@@ -42,10 +44,12 @@ class Window(tk.Frame):
         self.start_point_defined = False
         self.goal_point_defined = False
         self.game_started = False
+        self.can_be_placed = False
         self.charge_default_map()
         self.charge_default_robot()
 
     def reset_game(self):
+        self.circle = 0
         self.image_map = None
         self.image_robot = None
         self.render_map = None
@@ -57,6 +61,7 @@ class Window(tk.Frame):
         self.start_point_defined = False
         self.goal_point_defined = False
         self.game_started = False
+        self.can_be_placed = False
 
     def charge_default_map(self):
         self.stored_map = Image.open("Room.bmp", "r")
@@ -128,15 +133,51 @@ class Window(tk.Frame):
         rgb_im = self.stored_map.convert('RGB')
         r, g, b = rgb_im.getpixel((x, y))
         print(r, g, b)
+        return r, g, b
+
+    def display_color_cursor(self, event):
+        if self.is_robot_free(event.x, event.y) == True:
+            self.circle = self.canvas.create_circle(
+                event.x, event.y, 10, fill="green", width=1)
+            self.can_be_placed = True
+        else:
+            self.circle = self.canvas.create_circle(
+                event.x, event.y, 10, fill="red", width=1)
+            self.can_be_placed = False
+
+    def free_robot_placement(self, event):
+        x, y = event.x + 3, event.y + 7
+        radius = 10
+        x_max = x + radius
+        x_min = x - radius
+        y_max = y + radius
+        y_min = y - radius
+
+        self.canvas.delete(self.circle)
+        self.display_color_cursor(event)
+
+    def is_robot_free(self, x, y):
+        r, g, b = self.get_color_pixel_at_pos(x, y)
+        if r == 255 and g == 255 and b == 255:
+            print("WHITE PIXEL")
+            return True
+        else:
+            print("BLACK PIXEL")
+            return False
+
+    def remove_circle_cursor(self):
+        self.canvas.delete(self.circle)
+        self.canvas.unbind('<Motion>')
 
     def detect_left_click(self, event):
         print("left clicked at", event.x, event.y)
-        self.get_color_pixel_at_pos(event.x, event.y)
-        if self.render_map is not None and self.render_robot is not None and self.start_point_defined == False:
+        self.is_robot_free(event.x, event.y)
+        if self.render_map is not None and self.render_robot is not None and self.start_point_defined == False and self.can_be_placed == True:
             self.image_robot = self.canvas.create_image(
                 (event.x, event.y), image=self.render_robot)
             self.start_coordinate = Vector(event.x, event.y)
             Vector.display_vector(self.start_coordinate)
+            self.remove_circle_cursor()
             self.start_point_defined = True
 
     def detect_right_click(self, event):
@@ -158,7 +199,6 @@ class Window(tk.Frame):
             return False
 
     def move(self):
-        Vector.display_vector(self.goal_coordinate)
         calc = Vector(self.start_coordinate.x, self.start_coordinate.y)
         calc.x = self.start_coordinate.x + 10
         calc.y = self.start_coordinate.y + 0
@@ -174,6 +214,7 @@ class Window(tk.Frame):
         print("Coord Start: ")
         Vector.display_vector(self.start_coordinate)
         print("Coord Goal: ")
+        Vector.display_vector(self.goal_coordinate)
         self.move()
 
         # time.sleep(1)
