@@ -155,14 +155,23 @@ class Window(tk.Frame):
         # TODO: define if circle cursor hit a black pixel in range
         # if yes then user can't place the robot
         # if no then user CAN place the robot // same for the endpoint
-        print(self.hitbox_cursor_circle, flush=True)
+        # print(self.hitbox_cursor_circle, flush=True)
         if self.hitbox_cursor_circle is not None:
-            if (self.hitbox_cursor_circle[0] < x < self.hitbox_cursor_circle[2]) and (self.hitbox_cursor_circle[1] < y < self.hitbox_cursor_circle[3]):
-                print("OUTSIDE")
-                return False
-            else:
-                print("INSIDE")
-                return True
+            x1 = self.hitbox_cursor_circle[0]
+            y1 = self.hitbox_cursor_circle[1]
+            x2 = self.hitbox_cursor_circle[2]
+            y2 = self.hitbox_cursor_circle[3]
+            # print("hitbox: X1", self.hitbox_cursor_circle[0], flush=True)
+            # print("hitbox: X2", self.hitbox_cursor_circle[2], flush=True)
+            # print("hitbox: Y1", self.hitbox_cursor_circle[1], flush=True)
+            # print("hitbox: Y2", self.hitbox_cursor_circle[3], flush=True)
+            for x in range(x1, x2):
+                if self.is_pixel_white(x, y1) is False:
+                    return True
+            for y in range(y1, y2):
+                if self.is_pixel_white(x1, y) is False:
+                    return True
+            return False
         return True
 
     def is_pixel_white(self, x, y):
