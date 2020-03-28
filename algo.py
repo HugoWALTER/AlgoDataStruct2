@@ -43,6 +43,7 @@ class Window(tk.Frame):
         self.render_robot = None
         self.stored_map = None
         self.stored_robot = None
+        self.rgb_img = None
         self.hitbox_robot = None
         self.hitbox_cursor_circle = None
         self.start_coordinate = None
@@ -62,6 +63,7 @@ class Window(tk.Frame):
         self.render_robot = None
         self.stored_map = None
         self.stored_robot = None
+        self.rgb_img = None
         self.hitbox_robot = None
         self.hitbox_cursor_circle = None
         self.start_coordinate = None
@@ -71,7 +73,7 @@ class Window(tk.Frame):
         self.game_started = False
         self.can_be_placed = False
         self.canvas.delete("all")
-        self.canvas.bind("<Motion>", self.free_robot_placement)
+        self.canvas.bind("<Motion>", self.circle_cursor_placement)
 
     def charge_default_map(self):
         self.stored_map = Image.open("Room.bmp", "r")
@@ -80,6 +82,7 @@ class Window(tk.Frame):
         w, h = self.stored_map.size
         self.render_map = ImageTk.PhotoImage(
             self.stored_map)
+        self.rgb_img = self.stored_map.convert('RGB')
 
         if self.image_map is not None:
             self.canvas.delete(self.image_map)
@@ -112,6 +115,7 @@ class Window(tk.Frame):
         w, h = self.stored_map.size
         self.render_map = ImageTk.PhotoImage(
             self.stored_map)
+        self.rgb_img = self.stored_map.convert('RGB')
 
         if self.image_map is not None:
             self.canvas.delete(self.image_map)
@@ -143,8 +147,7 @@ class Window(tk.Frame):
     tk.Canvas.create_circle = _create_circle
 
     def get_color_pixel_at_pos(self, x, y):
-        rgb_img = self.stored_map.convert('RGB')
-        r, g, b = rgb_img.getpixel((x, y))
+        r, g, b = self.rgb_img.getpixel((x, y))
         # print(r, g, b)
         return r, g, b
 
@@ -152,8 +155,15 @@ class Window(tk.Frame):
         # TODO: define if circle cursor hit a black pixel in range
         # if yes then user can't place the robot
         # if no then user CAN place the robot // same for the endpoint
-        print(self.hitbox_cursor_circle)
-        return False
+        print(self.hitbox_cursor_circle, flush=True)
+        if self.hitbox_cursor_circle is not None:
+            if (self.hitbox_cursor_circle[0] < x < self.hitbox_cursor_circle[2]) and (self.hitbox_cursor_circle[1] < y < self.hitbox_cursor_circle[3]):
+                print("OUTSIDE")
+                return False
+            else:
+                print("INSIDE")
+                return True
+        return True
 
     def is_pixel_white(self, x, y):
         r, g, b = self.get_color_pixel_at_pos(x, y)
