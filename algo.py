@@ -151,7 +151,7 @@ class Window(tk.Frame):
         # print(r, g, b)
         return r, g, b
 
-    def is_robot_collide(self):
+    def is_robot_cursor_collide(self):
         # TODO: define if circle cursor hit a black pixel in range
         # if yes then user can't place the robot
         # if no then user CAN place the robot // same for the endpoint
@@ -185,7 +185,7 @@ class Window(tk.Frame):
                 return False
 
     def is_robot_free(self, x, y):
-        if self.is_pixel_white(x, y) == True and self.is_robot_collide() == False:
+        if self.is_pixel_white(x, y) == True and self.is_robot_cursor_collide() == False:
             return True
         else:
             return False
