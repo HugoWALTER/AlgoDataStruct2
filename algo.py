@@ -184,14 +184,14 @@ class Window(tk.Frame):
                 # print("BLACK PIXEL")
                 return False
 
-    def is_robot_free(self, x, y):
+    def is_robot_cursor_free(self, x, y):
         if self.is_pixel_white(x, y) == True and self.is_robot_cursor_collide() == False:
             return True
         else:
             return False
 
     def display_color_cursor(self, event):
-        if self.is_robot_free(event.x, event.y) == True:
+        if self.is_robot_cursor_free(event.x, event.y) == True:
             self.circle = self.canvas.create_circle(
                 event.x, event.y, Window.CIRCLE_SIZE, fill="green", width=1)
             self.hitbox_cursor_circle = self.canvas.bbox(self.circle)
@@ -229,7 +229,7 @@ class Window(tk.Frame):
 
     def detect_left_click(self, event):
         print("left clicked at", event.x, event.y)
-        self.is_robot_free(event.x, event.y)
+        self.is_robot_cursor_free(event.x, event.y)
         if self.render_map is not None and self.render_robot is not None and self.start_point_defined == False and self.can_be_placed == True:
             self.image_robot = self.canvas.create_image(
                 (event.x, event.y), image=self.render_robot)
@@ -240,7 +240,7 @@ class Window(tk.Frame):
 
     def detect_right_click(self, event):
         print("right clicked at", event.x, event.y)
-        self.is_robot_free(event.x, event.y)
+        self.is_robot_cursor_free(event.x, event.y)
         if self.start_point_defined == True and self.goal_point_defined == False and self.can_be_placed == True:
             self.canvas.create_circle(
                 event.x, event.y, Window.CIRCLE_SIZE, fill="yellow", width=1)
