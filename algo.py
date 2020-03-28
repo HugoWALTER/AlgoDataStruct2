@@ -151,7 +151,7 @@ class Window(tk.Frame):
         # print(r, g, b)
         return r, g, b
 
-    def is_robot_collide(self, x, y):
+    def is_robot_collide(self):
         # TODO: define if circle cursor hit a black pixel in range
         # if yes then user can't place the robot
         # if no then user CAN place the robot // same for the endpoint
@@ -175,16 +175,17 @@ class Window(tk.Frame):
         return True
 
     def is_pixel_white(self, x, y):
-        r, g, b = self.get_color_pixel_at_pos(x, y)
-        if r == 255 and g == 255 and b == 255:
-            # print("WHITE PIXEL")
-            return True
-        else:
-            # print("BLACK PIXEL")
-            return False
+        if (0 < x < Window.MAP_SIZE_X) and (0 < y < Window.MAP_SIZE_Y):
+            r, g, b = self.get_color_pixel_at_pos(x, y)
+            if r == 255 and g == 255 and b == 255:
+                # print("WHITE PIXEL")
+                return True
+            else:
+                # print("BLACK PIXEL")
+                return False
 
     def is_robot_free(self, x, y):
-        if self.is_pixel_white(x, y) == True and self.is_robot_collide(x, y) == False:
+        if self.is_pixel_white(x, y) == True and self.is_robot_collide() == False:
             return True
         else:
             return False
@@ -202,7 +203,7 @@ class Window(tk.Frame):
             self.can_be_placed = False
 
     def circle_cursor_placement(self, event):
-        x, y = event.x + 3, event.y + 7
+        x, y = event.x, event.y
         radius = Window.CIRCLE_SIZE
         x_max = x + radius
         x_min = x - radius
