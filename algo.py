@@ -37,6 +37,7 @@ class Window(tk.Frame):
         self.canvas.bind("<Motion>", self.circle_cursor_placement)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.circle = None
+        self.rectangle_robot_hitbox = None
         self.image_map = None
         self.image_robot = None
         self.render_map = None
@@ -57,6 +58,7 @@ class Window(tk.Frame):
 
     def reset_game(self):
         self.circle = None
+        self.rectangle_robot_hitbox = None
         self.image_map = None
         self.image_robot = None
         self.render_map = None
@@ -225,7 +227,20 @@ class Window(tk.Frame):
         print("hitbox: X2", self.hitbox_robot[2])
         print("hitbox: Y2", self.hitbox_robot[3])
         # TODO: move hitbox when robot is moving
-        self.canvas.create_rectangle(self.hitbox_robot, outline="red", width=2)
+        self.rectangle_robot_hitbox = self.canvas.create_rectangle(
+            self.hitbox_robot, outline="red", width=2)
+
+    def update_robot_hitbox(self):
+        self.canvas.delete(self.rectangle_robot_hitbox)
+        self.hitbox_robot = self.canvas.bbox(self.image_robot)
+        print("hitbox:", self.hitbox_robot)
+        print("hitbox: X1", self.hitbox_robot[0])
+        print("hitbox: Y1", self.hitbox_robot[1])
+        print("hitbox: X2", self.hitbox_robot[2])
+        print("hitbox: Y2", self.hitbox_robot[3])
+        # TODO: move hitbox when robot is moving
+        self.rectangle_robot_hitbox = self.canvas.create_rectangle(
+            self.hitbox_robot, outline="red", width=2)
 
     def detect_left_click(self, event):
         print("left clicked at", event.x, event.y)
@@ -260,9 +275,10 @@ class Window(tk.Frame):
 
     def move(self):
         calc = Vector(self.start_coordinate.x, self.start_coordinate.y)
-        calc.x = self.start_coordinate.x + 0  # + or - depend on direction
+        calc.x = self.start_coordinate.x + 10  # + or - depend on direction
         calc.y = self.start_coordinate.y + 0  # + or - depend on direction
         self.canvas.coords(self.image_robot, calc.x, calc.y)
+        self.update_robot_hitbox()
         print("New pos X:", calc.x)
         print("New pos Y:", calc.y)
         # self.is_win(calc)
