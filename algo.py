@@ -15,10 +15,10 @@ class Vector:
 
 
 class Window(tk.Frame):
-    MAP_SIZE_X = 1280
-    MAP_SIZE_Y = 720
-    ROBOT_SIZE = 25
-    CIRCLE_SIZE = 12
+    MAP_SIZE_X = 1350
+    MAP_SIZE_Y = 980
+    ROBOT_SIZE = 45
+    CIRCLE_SIZE = 22
 
     def __init__(self, master=None):
         tk.Frame.__init__(self, master)
@@ -205,13 +205,6 @@ class Window(tk.Frame):
             self.can_be_placed = False
 
     def circle_cursor_placement(self, event):
-        x, y = event.x, event.y
-        radius = Window.CIRCLE_SIZE
-        x_max = x + radius
-        x_min = x - radius
-        y_max = y + radius
-        y_min = y - radius
-
         self.canvas.delete(self.circle)
         self.display_color_cursor(event)
 
