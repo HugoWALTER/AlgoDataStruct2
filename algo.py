@@ -78,7 +78,7 @@ class Window(tk.Frame):
         self.canvas.bind("<Motion>", self.circle_cursor_placement)
 
     def charge_default_map(self):
-        self.stored_map = Image.open("Room.bmp", "r")
+        self.stored_map = Image.open("Room_BW.bmp", "r")
         self.stored_map = self.stored_map.resize(
             (Window.MAP_SIZE_X, Window.MAP_SIZE_Y), Image.ANTIALIAS)
         w, h = self.stored_map.size
@@ -95,7 +95,7 @@ class Window(tk.Frame):
         root.geometry("%dx%d" % (w, h))
 
     def charge_default_robot(self):
-        self.stored_robot = Image.open("robot.bmp", "r")
+        self.stored_robot = Image.open("robot_BW.bmp", "r")
         self.stored_robot = self.stored_robot.resize(
             (Window.ROBOT_SIZE, Window.ROBOT_SIZE), Image.ANTIALIAS)
         w, h = self.stored_robot.size
@@ -150,7 +150,7 @@ class Window(tk.Frame):
 
     def get_color_pixel_at_pos(self, x, y):
         r, g, b = self.rgb_img.getpixel((x, y))
-        # print(r, g, b)
+        # print(r, g, b, flush=True)
         return r, g, b
 
     def is_robot_cursor_collide(self):
