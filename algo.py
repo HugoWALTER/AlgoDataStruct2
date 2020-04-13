@@ -150,7 +150,7 @@ class Window(tk.Frame):
 
     def get_color_pixel_at_pos(self, x, y):
         r, g, b = self.rgb_img.getpixel((x, y))
-        # print(r, g, b, flush=True)
+        print(r, g, b, flush=True)
         return r, g, b
 
     def is_robot_cursor_collide(self):
@@ -170,8 +170,14 @@ class Window(tk.Frame):
             for x in range(x1, x2):
                 if self.is_pixel_white(x, y1) is False:
                     return True
+            for x in range(x1, x2):
+                if self.is_pixel_white(x, y2) is False:
+                    return True
             for y in range(y1, y2):
                 if self.is_pixel_white(x1, y) is False:
+                    return True
+            for y in range(y1, y2):
+                if self.is_pixel_white(x2, y) is False:
                     return True
             return False
         return True
