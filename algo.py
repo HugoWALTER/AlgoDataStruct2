@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import os
 import time
@@ -37,6 +37,9 @@ class Window(tk.Frame):
         self.canvas.bind("<Motion>", self.circle_cursor_placement)
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.circle = None
+        self.goal_circle = None
+        self.blue_circle = None
+        self.path_line = None
         self.rectangle_robot_hitbox = None
         self.image_map = None
         self.image_robot = None
@@ -55,9 +58,14 @@ class Window(tk.Frame):
         self.can_be_placed = False
         self.charge_default_map()
         self.charge_default_robot()
+        self.solutionPath = []
+        self.currentPos = (0, 0)
 
     def reset_game(self):
         self.circle = None
+        self.goal_circle = None
+        self.blue_circle = None
+        self.path_line = None
         self.rectangle_robot_hitbox = None
         self.image_map = None
         self.image_robot = None
@@ -74,6 +82,8 @@ class Window(tk.Frame):
         self.goal_point_defined = False
         self.game_started = False
         self.can_be_placed = False
+        self.solutionPath = []
+        self.currentPos = (0, 0)
         self.canvas.delete("all")
         self.canvas.bind("<Motion>", self.circle_cursor_placement)
 
@@ -256,7 +266,7 @@ class Window(tk.Frame):
         print("right clicked at", event.x, event.y)
         self.is_robot_cursor_free(event.x, event.y)
         if self.start_point_defined == True and self.goal_point_defined == False and self.can_be_placed == True:
-            self.canvas.create_circle(
+            self.goal_circle = self.canvas.create_circle(
                 event.x, event.y, Window.CIRCLE_SIZE, fill="yellow", width=1)
             self.goal_coordinate = Vector(event.x, event.y)
             Vector.display_vector(self.goal_coordinate)
@@ -283,6 +293,67 @@ class Window(tk.Frame):
         # self.is_win(calc)
         # loop in this function
 
+    def move_robot_on_path_current_pos(self, index):
+        self.currentPos = self.solutionPath[index]
+        self.canvas.coords(
+            self.image_robot, self.currentPos[0], self.currentPos[1])
+        self.canvas.update()
+        time.sleep(0.05)
+
+    def set_init_solution_path(self):
+        resolution = max(abs(
+            self.start_coordinate.x - self.goal_coordinate.y), abs(self.start_coordinate.y - self.goal_coordinate.y))
+
+        self.solutionPath.append(self.start_coordinate)
+        for i in range(1, resolution):
+            deltaX = round(
+                i*float(self.goal_coordinate.x - self.start_coordinate.x)/float(resolution))
+            deltaY = round(
+                i*float(self.goal_coordinate.y - self.start_coordinate.y)/float(resolution))
+            newX = self.start_coordinate.x + deltaX
+            newY = self.start_coordinate.y + deltaY
+            self.solutionPath.append((newX, newY))
+        self.solutionPath.append(self.goal_coordinate)
+
+    def draw_path(self):
+        start_x = self.start_coordinate.x
+        start_y = self.start_coordinate.y
+        self.blue_circle = self.canvas.create_circle(
+            self.start_coordinate.x, self.start_coordinate.y, Window.CIRCLE_SIZE, fill="blue", width=1)
+        self.path_line = self.canvas.create_line(self.start_coordinate.x, self.start_coordinate.y,
+                                                 self.goal_coordinate.x, self.goal_coordinate.y, fill='red', arrow='last')
+        self.canvas.delete(self.rectangle_robot_hitbox)
+
+    def calc_path(self):
+        self.set_init_solution_path()
+        self.solutionPath = list(dict.fromkeys(self.solutionPath))
+
+    def draw_robot_following_path(self):
+        for i in range(1, (len(self.solutionPath) - 1)):
+            self.move_robot_on_path_current_pos(int(i))
+        self.canvas.delete(self.goal_circle)
+        self.canvas.update()
+        time.sleep(1)
+
+    def reset_before_path(self):
+        self.canvas.coords(
+            self.image_robot, self.start_coordinate.x, self.start_coordinate.y)
+        self.update_robot_hitbox()
+        self.canvas.update()
+        self.canvas.delete(self.blue_circle)
+        self.canvas.delete(self.path_line)
+        self.goal_circle = self.canvas.create_circle(
+            self.goal_coordinate.x, self.goal_coordinate.y, Window.CIRCLE_SIZE, fill="yellow", width=1)
+
+    def open_dialog_path(self):
+        MsgBox = tk.messagebox.askquestion(
+            'Show Path', 'Are you sure you want to show the path?', icon='info')
+        if MsgBox == 'yes':
+            self.draw_path()
+            self.calc_path()
+            self.draw_robot_following_path()
+            self.reset_before_path()
+
     def launch_game(self):
         print("Launch Game")
         self.game_started = True
@@ -290,6 +361,7 @@ class Window(tk.Frame):
         Vector.display_vector(self.start_coordinate)
         print("Coord Goal:")
         Vector.display_vector(self.goal_coordinate)
+        self.open_dialog_path()
         self.move()
 
         # time.sleep(1)
