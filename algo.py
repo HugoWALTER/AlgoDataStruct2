@@ -1,4 +1,5 @@
 import tkinter as tk
+import numpy as np
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import os
@@ -27,9 +28,14 @@ class Window(tk.Frame):
         master.config(menu=menu)
 
         file_menu = tk.Menu(menu, tearoff=0)
+        config_menu = tk.Menu(menu, tearoff=0)
+
+        menu.add_cascade(label="File", menu=file_menu)
         file_menu.add_command(label="Load Map", command=self.open_file_map)
         file_menu.add_command(label="Exit", command=self.quit)
-        menu.add_cascade(label="File", menu=file_menu)
+
+        menu.add_cascade(label="ConfigSpace", menu=config_menu)
+        config_menu.add_command(label="Cobs", command=self.draw_cobs)
 
         self.canvas = tk.Canvas(self)
         self.canvas.bind("<Button-1>", self.detect_left_click)
@@ -298,7 +304,7 @@ class Window(tk.Frame):
         self.canvas.coords(
             self.image_robot, self.currentPos[0], self.currentPos[1])
         self.canvas.update()
-        time.sleep(0.05)
+        time.sleep(0.01)
 
     def set_init_solution_path(self):
         resolution = max(abs(
@@ -347,12 +353,61 @@ class Window(tk.Frame):
 
     def open_dialog_path(self):
         MsgBox = tk.messagebox.askquestion(
-            'Show Path', 'Are you sure you want to show the path?', icon='info')
+            'Show Path', 'Do you want to show the path?', icon='info')
         if MsgBox == 'yes':
             self.draw_path()
             self.calc_path()
             self.draw_robot_following_path()
             self.reset_before_path()
+
+    def create_configspace(self):
+        self.configspace_top = tk.Toplevel(self.master)
+        self.cfg_canvas = tk.Canvas(
+            self.configspace_top, width=Window.MAP_SIZE_X, height=Window.MAP_SIZE_Y)
+        self.cfg_canvas.pack()
+
+    def draw_configspace_init(self):
+        self.cfg_canvas.create_circle(
+            self.start_coordinate.x, self.start_coordinate.y, Window.CIRCLE_SIZE / 3, fill="blue", width=1)
+        self.cfg_canvas.create_circle(
+            self.goal_coordinate.x, self.goal_coordinate.y, Window.CIRCLE_SIZE / 3, fill="yellow", width=1)
+        self.cfg_canvas.create_line(self.start_coordinate.x, self.start_coordinate.y,
+                                    self.goal_coordinate.x, self.goal_coordinate.y, fill='red', arrow='last')
+
+    def is_pixel_approx_white(self, colors, threshold):
+        for color in colors:
+            if not (255 >= color >= 255 - threshold):
+                return "black"
+        return "white"
+
+    def compute_map_configspace(self):
+        array = np.asarray(self.rgb_img)
+        coords = []
+        for x in range(1, Window.MAP_SIZE_X - 1):
+            for y in range(1, Window.MAP_SIZE_Y - 1):
+                if (self.is_pixel_approx_white(array[y][x], 30) != "white" and ((self.is_pixel_approx_white(array[y+1][x-1], 30) == 'white')
+                                                                                or (self.is_pixel_approx_white(array[y+1][x], 30) == 'white')
+                                                                                or (self.is_pixel_approx_white(array[y+1][x+1], 30) == 'white')
+                                                                                or (self.is_pixel_approx_white(array[y][x+1], 30) == 'white')
+                                                                                or (self.is_pixel_approx_white(array[y-1][x], 30) == 'white')
+                                                                                or (self.is_pixel_approx_white(array[y-1][x-1], 30) == 'white')
+                                                                                or (self.is_pixel_approx_white(array[y][x-1], 30) == 'white')
+                                                                                or (self.is_pixel_approx_white(array[y-1][x+1], 30) == 'white'))):
+                    coords.append((x, y))
+        for count, item in enumerate(coords):
+            middle = Window.ROBOT_SIZE / 2
+            x, y = item
+            self.cfg_canvas.create_rectangle(x - middle, y - middle, x + middle,
+                                             y + middle, fill="black", width=1)
+            if (count % 1000 == 0):
+                self.canvas.update()
+
+    def draw_cobs(self):
+        if self.game_started is True:
+            self.create_configspace()
+            self.compute_map_configspace()
+            self.draw_configspace_init()
+            print("DONE")
 
     def launch_game(self):
         print("Launch Game")
