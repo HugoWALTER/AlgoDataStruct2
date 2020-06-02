@@ -2,8 +2,25 @@ import tkinter as tk
 import numpy as np
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
-import os
 import time
+import copy
+import math
+import os
+import random
+import sys
+
+import matplotlib.pyplot as plt
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) +
+                "./RRTStarReedsShepp/")
+
+try:
+    import RRTStarReedsShepp
+    from rrt_star_reeds_shepp import RRTStarReedsShepp
+except ImportError:
+    raise
+
+show_animation = True
 
 
 class Vector:
@@ -66,6 +83,7 @@ class Window(tk.Frame):
         self.charge_default_robot()
         self.solutionPath = []
         self.currentPos = (0, 0)
+        self.store_cobs_coords = []
 
     def reset_game(self):
         self.circle = None
@@ -90,6 +108,7 @@ class Window(tk.Frame):
         self.can_be_placed = False
         self.solutionPath = []
         self.currentPos = (0, 0)
+        self.store_cobs_coords = []
         self.canvas.delete("all")
         self.canvas.bind("<Motion>", self.circle_cursor_placement)
 
@@ -394,6 +413,7 @@ class Window(tk.Frame):
                                                                                 or (self.is_pixel_approx_white(array[y][x-1], 30) == 'white')
                                                                                 or (self.is_pixel_approx_white(array[y-1][x+1], 30) == 'white'))):
                     coords.append((x, y))
+                    self.store_cobs_coords.append((x, y, 0.4))
         for count, item in enumerate(coords):
             middle = Window.ROBOT_SIZE / 2
             x, y = item
@@ -402,12 +422,35 @@ class Window(tk.Frame):
             if (count % 1000 == 0):
                 self.canvas.update()
 
+    def launch_rrt(self):
+        print("Start " + __file__)
+
+        start = [float(self.start_coordinate.x),
+                 float(self.start_coordinate.y), np.deg2rad(0.0)]
+        goal = [float(self.goal_coordinate.x),
+                float(self.goal_coordinate.y), np.deg2rad(90.0)]
+
+        rrt_star_reeds_shepp = RRTStarReedsShepp(start, goal,
+                                                 self.store_cobs_coords,
+                                                 [0, 15], Window.MAP_SIZE_X, Window.MAP_SIZE_Y, max_iter=50)
+        path = rrt_star_reeds_shepp.planning(animation=show_animation)
+
+        if path and show_animation:  # pragma: no cover
+            rrt_star_reeds_shepp.draw_graph()
+            plt.plot([x for (x, y, yaw) in path], [
+                     y for (x, y, yaw) in path], '-r')
+            plt.grid(True)
+            plt.pause(0.001)
+            plt.show()
+
     def draw_cobs(self):
         if self.game_started is True:
             self.create_configspace()
             self.compute_map_configspace()
             self.draw_configspace_init()
             print("DONE")
+            self.launch_rrt()
+            print("END RRT")
 
     def launch_game(self):
         print("Launch Game")
