@@ -421,6 +421,7 @@ class Window(tk.Frame):
                                              y + middle, fill="black", width=1)
             if (count % 1000 == 0):
                 self.canvas.update()
+        print((len(self.store_cobs_coords)))
 
     def launch_rrt(self):
         print("Start " + __file__)
@@ -432,7 +433,7 @@ class Window(tk.Frame):
 
         rrt_star_reeds_shepp = RRTStarReedsShepp(start, goal,
                                                  self.store_cobs_coords,
-                                                 [0, 15], Window.MAP_SIZE_X, Window.MAP_SIZE_Y, max_iter=50)
+                                                 [0, self.goal_coordinate.x], Window.MAP_SIZE_X, Window.MAP_SIZE_Y, max_iter=50)
         path = rrt_star_reeds_shepp.planning(animation=show_animation)
 
         if path and show_animation:  # pragma: no cover

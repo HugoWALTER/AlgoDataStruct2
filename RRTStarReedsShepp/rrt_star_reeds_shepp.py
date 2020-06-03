@@ -45,7 +45,7 @@ class RRTStarReedsShepp(RRTStar):
 
     def __init__(self, start, goal, obstacle_list, rand_area, xmax, ymax,
                  max_iter=200,
-                 connect_circle_dist=50.0
+                 connect_circle_dist=200.0
                  ):
         """
         Setting Parameter
@@ -128,7 +128,8 @@ class RRTStarReedsShepp(RRTStar):
         plt.gcf().canvas.mpl_connect('key_release_event',
                                      lambda event: [exit(0) if event.key == 'escape' else None])
         if rnd is not None:
-            plt.plot(rnd.x, rnd.y, "^k")
+            plt.plot(rnd.x, rnd.y, "^b")
+            print("X & Y:", rnd.x, rnd.y, flush=True)
         for node in self.node_list:
             if node.parent:
                 plt.plot(node.path_x, node.path_y, "-g")
@@ -232,30 +233,30 @@ class RRTStarReedsShepp(RRTStar):
         return path
 
 
-def main(max_iter=50):
+def main(max_iter=500):
     print("Start " + __file__)
 
     # ====Search Path with RRT====
     obstacleList = [
-        (5, 5, 1),
-        (4, 6, 1),
-        (4, 8, 1),
-        (4, 10, 1),
-        (6, 5, 1),
-        (7, 5, 1),
-        (8, 6, 1),
-        (8, 8, 1),
-        (8, 10, 1)
+        (5, 5, 0.4),
+        (400, 6, 0.4),
+        (4, 800, 0.4),
+        (4, 10, 0.4),
+        (6, 5, 0.4),
+        (700, 5, 0.4),
+        (8, 600, 0.4),
+        (8, 8, 0.4),
+        (800, 100, 0.4)
     ]  # [x,y,size(radius)]
 
  # fill avec cobs
     # Set Initial parameters
-    start = [1.0, 1.0, np.deg2rad(0.0)]
-    goal = [6.0, 7.0, np.deg2rad(90.0)]
+    start = [1000.0, 500.0, np.deg2rad(0.0)]
+    goal = [60.0, 700.0, np.deg2rad(90.0)]
 
     rrt_star_reeds_shepp = RRTStarReedsShepp(start, goal,
                                              obstacleList,
-                                             [0, 15], 15, 15, max_iter=max_iter)
+                                             [0, 1000], 1500, 900, max_iter=max_iter)
     path = rrt_star_reeds_shepp.planning(animation=show_animation)
 
     # Draw final path

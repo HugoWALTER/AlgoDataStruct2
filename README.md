@@ -40,6 +40,9 @@ $ 2. Press Left Click when the circle is green to place the robot at a start poi
 
 $ 3. Press Right Click to place the goal point.
 
+$ 4. After placing the 2 points on the map, click on ConfigSpace > Cobs. The Config space will appear on the screen and you can at the end choose the number of iteration for the RTTStar algorithm.
+A new window will open on the screen. This might take a long time to visualize the final solution path(20 - 30 min).
+
 # at any time you can quit.
 # you can select a new map to reset the game (see 1.).
 ```
