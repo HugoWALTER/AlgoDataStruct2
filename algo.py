@@ -479,10 +479,13 @@ class Window(tk.Frame):
         gy = self.goal_coordinate.y  # [m]
         robot_size = 20.0  # [m]
 
+        # timer le truc
+
         if show_animation:
             plt.plot(self.sprm_ox, self.sprm_oy, ".k")
             plt.plot(sx, sy, "^r")
             plt.plot(gx, gy, "^m")
+            plt.axis([0, Window.MAP_SIZE_X, 0, Window.MAP_SIZE_Y])
             plt.gca().invert_yaxis()
             plt.grid(True)
 
@@ -493,8 +496,12 @@ class Window(tk.Frame):
 
         if show_animation:
             plt.plot(rx, ry, "-r")
-            plt.show()
-        print("END SPRM")
+            plt.show(block=False)
+            print("15 sec before closing")
+            time.sleep(15)
+            plt.close('all')
+            self.finish_algo = True
+        print("END SPRM MAIN PGRM")
 
     def get_sprm_form_values(self):
         self.nb_samples_sprm = self.nb_samples_sprm.get()
