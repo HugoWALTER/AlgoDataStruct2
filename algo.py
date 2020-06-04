@@ -275,11 +275,11 @@ class Window(tk.Frame):
 
     def define_robot_hitbox(self):
         self.hitbox_robot = self.canvas.bbox(self.image_robot)
-        print("hitbox:", self.hitbox_robot)
-        print("hitbox: X1", self.hitbox_robot[0])
-        print("hitbox: Y1", self.hitbox_robot[1])
-        print("hitbox: X2", self.hitbox_robot[2])
-        print("hitbox: Y2", self.hitbox_robot[3])
+        # print("hitbox:", self.hitbox_robot)
+        # print("hitbox: X1", self.hitbox_robot[0])
+        # print("hitbox: Y1", self.hitbox_robot[1])
+        # print("hitbox: X2", self.hitbox_robot[2])
+        # print("hitbox: Y2", self.hitbox_robot[3])
         # TODO: move hitbox when robot is moving
         self.rectangle_robot_hitbox = self.canvas.create_rectangle(
             self.hitbox_robot, outline="red", width=2)
@@ -287,11 +287,11 @@ class Window(tk.Frame):
     def update_robot_hitbox(self):
         self.canvas.delete(self.rectangle_robot_hitbox)
         self.hitbox_robot = self.canvas.bbox(self.image_robot)
-        print("hitbox:", self.hitbox_robot)
-        print("hitbox: X1", self.hitbox_robot[0])
-        print("hitbox: Y1", self.hitbox_robot[1])
-        print("hitbox: X2", self.hitbox_robot[2])
-        print("hitbox: Y2", self.hitbox_robot[3])
+        # print("hitbox:", self.hitbox_robot)
+        # print("hitbox: X1", self.hitbox_robot[0])
+        # print("hitbox: Y1", self.hitbox_robot[1])
+        # print("hitbox: X2", self.hitbox_robot[2])
+        # print("hitbox: Y2", self.hitbox_robot[3])
         # TODO: move hitbox when robot is moving
         self.rectangle_robot_hitbox = self.canvas.create_rectangle(
             self.hitbox_robot, outline="red", width=2)
@@ -458,12 +458,12 @@ class Window(tk.Frame):
 
     def move_robot_on_path_current_pos_sprm(self, index):
         self.currentPos = self.solutionPath[index]
-        print("X", self.currentPos[0])
-        print("Y", self.currentPos[1])
+        # print("X", self.currentPos[0])
+        # print("Y", self.currentPos[1])
         self.canvas.coords(
             self.image_robot, self.currentPos[0], self.currentPos[1])
         self.canvas.update()
-        time.sleep(1)
+        time.sleep(0.5)
 
     def set_init_solution_path_sprm(self, rx, ry):
         self.solutionPath.append(self.start_coordinate)
@@ -566,13 +566,17 @@ class Window(tk.Frame):
         self.sprm_form_canv.create_window(200, 10, window=label_sample)
 
         self.nb_samples_sprm = tk.Entry(self.sprm_form_root)
-        self.sprm_form_canv.create_window(200, 40, window=self.nb_samples_sprm)
+        self.nb_samples_sprm.insert(1500, 1500)
+        self.sprm_form_canv.create_window(
+            200, 40, window=self.nb_samples_sprm)
 
         label_edges = tk.Label(self.sprm_form_root, text='Number of Edges:')
         self.sprm_form_canv.create_window(200, 100, window=label_edges)
 
         self.nb_edges_sprm = tk.Entry(self.sprm_form_root)
-        self.sprm_form_canv.create_window(200, 140, window=self.nb_edges_sprm)
+        self.nb_edges_sprm.insert(30, 30)
+        self.sprm_form_canv.create_window(
+            200, 140, window=self.nb_edges_sprm)
 
         button_val = tk.Button(self.sprm_form_root, text='Validate',
                                command=self.get_sprm_form_values)
