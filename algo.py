@@ -13,10 +13,14 @@ import matplotlib.pyplot as plt
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) +
                 "./RRTStarReedsShepp/")
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) +
+                "./ProbabilisticRoadMap/")
 
 try:
     import RRTStarReedsShepp
+    import ProbabilisticRoadMap
     from rrt_star_reeds_shepp import RRTStarReedsShepp
+    from probabilistic_road_map import PRM_planning
 except ImportError:
     raise
 
@@ -84,6 +88,12 @@ class Window(tk.Frame):
         self.solutionPath = []
         self.currentPos = (0, 0)
         self.store_cobs_coords = []
+        self.number_algo = None
+        self.finish_algo = True
+        self.nb_samples_sprm = 0
+        self.nb_edges_sprm = 0
+        self.sprm_form_canv = None
+        self.sprm_form_root = None
 
     def reset_game(self):
         self.circle = None
@@ -111,6 +121,12 @@ class Window(tk.Frame):
         self.store_cobs_coords = []
         self.canvas.delete("all")
         self.canvas.bind("<Motion>", self.circle_cursor_placement)
+        self.number_algo = None
+        self.finish_algo = True
+        self.nb_samples_sprm = 0
+        self.nb_edges_sprm = 0
+        self.sprm_form_canv = None
+        self.sprm_form_root = None
 
     def charge_default_map(self):
         self.stored_map = Image.open("Room_BW.bmp", "r")
@@ -424,7 +440,7 @@ class Window(tk.Frame):
         print((len(self.store_cobs_coords)))
 
     def launch_rrt(self):
-        print("Start " + __file__)
+        print("Start RTT REEDS")
 
         start = [float(self.start_coordinate.x),
                  float(self.start_coordinate.y), np.deg2rad(0.0)]
@@ -444,13 +460,135 @@ class Window(tk.Frame):
             plt.pause(0.001)
             plt.show()
 
+    def launch_sprm(self):
+        print("STARTING SPRM")
+        # // TODO COMMENCER PAR LES MACROS
+        # //TODO PERSONNALISER LES AXES COMME SUR LE RTT, PUSH LES COORDONNES OX et OY, CASTER LES VALEURS DEPARTS, ENVOYER LES MACRO ET MODIFIER DANS LAUTRE FICHIER
+        # start and goal position
+        sx = 10.0  # [m]
+        sy = 10.0  # [m]
+        gx = 50.0  # [m]
+        gy = 50.0  # [m]
+        robot_size = 5.0  # [m]
+
+        ox = []
+        oy = []
+
+        for i in range(60):
+            ox.append(i)
+            oy.append(0.0)
+        for i in range(60):
+            ox.append(60.0)
+            oy.append(i)
+        for i in range(61):
+            ox.append(i)
+            oy.append(60.0)
+        for i in range(61):
+            ox.append(0.0)
+            oy.append(i)
+        for i in range(40):
+            ox.append(20.0)
+            oy.append(i)
+        for i in range(40):
+            ox.append(40.0)
+            oy.append(60.0 - i)
+
+        if show_animation:
+            plt.plot(ox, oy, ".k")
+            plt.plot(sx, sy, "^r")
+            plt.plot(gx, gy, "^c")
+            plt.grid(True)
+            plt.axis("equal")
+
+        rx, ry = PRM_planning(sx, sy, gx, gy, ox, oy, robot_size)
+
+        assert rx, 'Cannot found path'
+
+        if show_animation:
+            plt.plot(rx, ry, "-r")
+            plt.show()
+
+    def get_sprm_form_values(self):
+        self.nb_samples_sprm = self.nb_samples_sprm.get()
+        self.nb_edges_sprm = self.nb_edges_sprm.get()
+        print("VALUE SAMPLES:", self.nb_samples_sprm)
+        print("VALUE EDGES:", self.nb_edges_sprm)
+        self.sprm_form_canv.destroy()
+        self.sprm_form_root.destroy()
+        self.launch_sprm()
+
+    def open_form_sprm(self):
+        print("OPEN FORM")
+        self.sprm_form_root = tk.Tk()
+        self.sprm_form_root.title("SPRM FORM")
+
+        self.sprm_form_canv = tk.Canvas(
+            self.sprm_form_root, width=400, height=300)
+        self.sprm_form_canv.pack()
+
+        label_sample = tk.Label(self.sprm_form_root, text='Number of Samples:')
+        self.sprm_form_canv.create_window(200, 10, window=label_sample)
+
+        self.nb_samples_sprm = tk.Entry(self.sprm_form_root)
+        self.sprm_form_canv.create_window(200, 40, window=self.nb_samples_sprm)
+
+        label_edges = tk.Label(self.sprm_form_root, text='Number of Edges:')
+        self.sprm_form_canv.create_window(200, 100, window=label_edges)
+
+        self.nb_edges_sprm = tk.Entry(self.sprm_form_root)
+        self.sprm_form_canv.create_window(200, 140, window=self.nb_edges_sprm)
+
+        button_val = tk.Button(self.sprm_form_root, text='Validate',
+                               command=self.get_sprm_form_values)
+        self.sprm_form_canv.create_window(200, 180, window=button_val)
+
+    def select_algorithms(self):
+        value = self.number_algo.get()
+        if (self.finish_algo is False):
+            print("Please wait until the algorithm is finished !")
+            return
+        if (value == 0 and self.finish_algo is True):
+            print("launch SPRM")
+            self.open_form_sprm()
+            self.finish_algo = False
+        if (value == 1 and self.finish_algo is True):
+            print("launch RTT")
+            self.finish_algo = False
+        if (value == 2 and self.finish_algo is True):
+            print("launch RTT REEDS")
+            self.finish_algo = False
+
+    def show_algorithms(self):
+        print("Open modal")
+        self.number_algo = tk.IntVar()
+        self.number_algo.set(-1)
+        algorithms = [
+            ("SPRM"),
+            ("RTT"),
+            ("RTT_REEDS")
+        ]
+
+        tk.Label(self.master,
+                 text="""Choose your favourite algorithms:""",
+                 justify=tk.LEFT,
+                 padx=20).pack()
+
+        for val, algorithm in enumerate(algorithms):
+            tk.Radiobutton(self.master,
+                           text=algorithm,
+                           padx=20,
+                           variable=self.number_algo,
+                           command=self.select_algorithms,
+                           value=val).pack()
+
     def draw_cobs(self):
         if self.game_started is True:
-            self.create_configspace()
-            self.compute_map_configspace()
-            self.draw_configspace_init()
+            # self.create_configspace()
+            # self.compute_map_configspace()
+            # self.draw_configspace_init()
+            self.show_algorithms()
             print("DONE")
-            self.launch_rrt()
+            # self.launch_rrt()
             print("END RRT")
 
     def launch_game(self):
@@ -460,13 +598,8 @@ class Window(tk.Frame):
         Vector.display_vector(self.start_coordinate)
         print("Coord Goal:")
         Vector.display_vector(self.goal_coordinate)
-        self.open_dialog_path()
+        # self.open_dialog_path() REACTIVATE !!!!!
         self.move()
-
-        # time.sleep(1)
-        # do simple loop to move start to goal pos (x & y)
-        # getInfosbypixel from BMP
-        # do algo to move only if x + 1 & y + 1 are white
 
 
 if __name__ == '__main__':
