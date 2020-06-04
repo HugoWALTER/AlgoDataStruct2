@@ -129,7 +129,6 @@ class RRTStarReedsShepp(RRTStar):
                                      lambda event: [exit(0) if event.key == 'escape' else None])
         if rnd is not None:
             plt.plot(rnd.x, rnd.y, "^b")
-            print("X & Y:", rnd.x, rnd.y, flush=True)
         for node in self.node_list:
             if node.parent:
                 plt.plot(node.path_x, node.path_y, "-g")

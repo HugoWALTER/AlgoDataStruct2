@@ -94,6 +94,8 @@ class Window(tk.Frame):
         self.nb_edges_sprm = 0
         self.sprm_form_canv = None
         self.sprm_form_root = None
+        self.sprm_ox = []
+        self.sprm_oy = []
 
     def reset_game(self):
         self.circle = None
@@ -127,6 +129,8 @@ class Window(tk.Frame):
         self.nb_edges_sprm = 0
         self.sprm_form_canv = None
         self.sprm_form_root = None
+        self.sprm_ox = []
+        self.sprm_oy = []
 
     def charge_default_map(self):
         self.stored_map = Image.open("Room_BW.bmp", "r")
@@ -430,6 +434,8 @@ class Window(tk.Frame):
                                                                                 or (self.is_pixel_approx_white(array[y-1][x+1], 30) == 'white'))):
                     coords.append((x, y))
                     self.store_cobs_coords.append((x, y, 0.4))
+                    self.sprm_ox.append(x)
+                    self.sprm_oy.append(y)
         for count, item in enumerate(coords):
             middle = Window.ROBOT_SIZE / 2
             x, y = item
@@ -463,50 +469,32 @@ class Window(tk.Frame):
     def launch_sprm(self):
         print("STARTING SPRM")
         # // TODO COMMENCER PAR LES MACROS
-        # //TODO PERSONNALISER LES AXES COMME SUR LE RTT, PUSH LES COORDONNES OX et OY, CASTER LES VALEURS DEPARTS, ENVOYER LES MACRO ET MODIFIER DANS LAUTRE FICHIER
+        # //TODO PERSONNALISER LES (inverser) AXES COMME SUR LE RTT, PUSH LES COORDONNES OX et OY, CASTER LES VALEURS DEPARTS, ENVOYER LES MACRO ET MODIFIER DANS LAUTRE FICHIER
+        # TIMER TEMPS EXECUTION ALGO
+        # RECUPERER LE CHEMIN ROUGE ET FAIRE SUIVRE LE ROBOT DESSUS
         # start and goal position
-        sx = 10.0  # [m]
-        sy = 10.0  # [m]
-        gx = 50.0  # [m]
-        gy = 50.0  # [m]
-        robot_size = 5.0  # [m]
-
-        ox = []
-        oy = []
-
-        for i in range(60):
-            ox.append(i)
-            oy.append(0.0)
-        for i in range(60):
-            ox.append(60.0)
-            oy.append(i)
-        for i in range(61):
-            ox.append(i)
-            oy.append(60.0)
-        for i in range(61):
-            ox.append(0.0)
-            oy.append(i)
-        for i in range(40):
-            ox.append(20.0)
-            oy.append(i)
-        for i in range(40):
-            ox.append(40.0)
-            oy.append(60.0 - i)
+        sx = self.start_coordinate.x  # [m]
+        sy = self.start_coordinate.y  # [m]
+        gx = self.goal_coordinate.x  # [m]
+        gy = self.goal_coordinate.y  # [m]
+        robot_size = 20.0  # [m]
 
         if show_animation:
-            plt.plot(ox, oy, ".k")
+            plt.plot(self.sprm_ox, self.sprm_oy, ".k")
             plt.plot(sx, sy, "^r")
-            plt.plot(gx, gy, "^c")
+            plt.plot(gx, gy, "^m")
+            plt.gca().invert_yaxis()
             plt.grid(True)
-            plt.axis("equal")
 
-        rx, ry = PRM_planning(sx, sy, gx, gy, ox, oy, robot_size)
+        rx, ry = PRM_planning(sx, sy, gx, gy, self.sprm_ox, self.sprm_oy, robot_size,
+                              int(self.nb_samples_sprm), int(self.nb_edges_sprm))
 
         assert rx, 'Cannot found path'
 
         if show_animation:
             plt.plot(rx, ry, "-r")
             plt.show()
+        print("END SPRM")
 
     def get_sprm_form_values(self):
         self.nb_samples_sprm = self.nb_samples_sprm.get()
@@ -583,9 +571,10 @@ class Window(tk.Frame):
 
     def draw_cobs(self):
         if self.game_started is True:
-            # self.create_configspace()
-            # self.compute_map_configspace()
-            # self.draw_configspace_init()
+            print("START DRAWING COBS")
+            self.create_configspace()
+            self.compute_map_configspace()
+            self.draw_configspace_init()
             self.show_algorithms()
             print("DONE")
             # self.launch_rrt()

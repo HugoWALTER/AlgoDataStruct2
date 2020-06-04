@@ -13,8 +13,6 @@ import scipy.spatial
 import matplotlib.pyplot as plt
 
 # parameter
-N_SAMPLE = 500  # number of sample_points
-N_KNN = 10  # number of edge from one sampled point
 MAX_EDGE_LEN = 30.0  # [m] Maximum edge length
 
 show_animation = True
@@ -75,16 +73,15 @@ class KDTree:
         return index
 
 
-def PRM_planning(sx, sy, gx, gy, ox, oy, rr):
-
-    # define Value of macro in param Here and re-set value here
+def PRM_planning(sx, sy, gx, gy, ox, oy, rr, samples, edges):
     obkdtree = KDTree(np.vstack((ox, oy)).T)
 
-    sample_x, sample_y = sample_points(sx, sy, gx, gy, rr, ox, oy, obkdtree)
+    sample_x, sample_y = sample_points(
+        sx, sy, gx, gy, rr, ox, oy, obkdtree, samples)
     if show_animation:
         plt.plot(sample_x, sample_y, ".b")
 
-    road_map = generate_roadmap(sample_x, sample_y, rr, obkdtree)
+    road_map = generate_roadmap(sample_x, sample_y, rr, obkdtree, edges)
 
     rx, ry = dijkstra_planning(
         sx, sy, gx, gy, ox, oy, rr, road_map, sample_x, sample_y)
@@ -121,7 +118,7 @@ def is_collision(sx, sy, gx, gy, rr, okdtree):
     return False  # OK
 
 
-def generate_roadmap(sample_x, sample_y, rr, obkdtree):
+def generate_roadmap(sample_x, sample_y, rr, obkdtree, edges):
     """
     Road map generation
 
@@ -150,7 +147,7 @@ def generate_roadmap(sample_x, sample_y, rr, obkdtree):
             if not is_collision(ix, iy, nx, ny, rr, obkdtree):
                 edge_id.append(inds[ii])
 
-            if len(edge_id) >= N_KNN:
+            if len(edge_id) >= edges:
                 break
 
         road_map.append(edge_id)
@@ -256,7 +253,7 @@ def plot_road_map(road_map, sample_x, sample_y):  # pragma: no cover
                      [sample_y[i], sample_y[ind]], "-k")
 
 
-def sample_points(sx, sy, gx, gy, rr, ox, oy, obkdtree):
+def sample_points(sx, sy, gx, gy, rr, ox, oy, obkdtree, samples):
     maxx = max(ox)
     maxy = max(oy)
     minx = min(ox)
@@ -264,7 +261,7 @@ def sample_points(sx, sy, gx, gy, rr, ox, oy, obkdtree):
 
     sample_x, sample_y = [], []
 
-    while len(sample_x) <= N_SAMPLE:
+    while len(sample_x) <= samples:
         tx = (random.random() * (maxx - minx)) + minx
         ty = (random.random() * (maxy - miny)) + miny
 
@@ -321,7 +318,7 @@ def main():
         plt.grid(True)
         plt.axis("equal")
 
-    rx, ry = PRM_planning(sx, sy, gx, gy, ox, oy, robot_size)
+    rx, ry = PRM_planning(sx, sy, gx, gy, ox, oy, robot_size, 500, 10)
 
     assert rx, 'Cannot found path'
 
