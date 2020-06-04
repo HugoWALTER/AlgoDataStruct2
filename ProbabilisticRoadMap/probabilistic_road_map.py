@@ -199,7 +199,7 @@ def dijkstra_planning(sx, sy, gx, gy, ox, oy, rr, road_map, sample_x, sample_y):
             plt.pause(0.001)
 
         if c_id == (len(road_map) - 1):
-            print("goal is found!")
+            print("Goal is found!")
             ngoal.pind = current.pind
             ngoal.cost = current.cost
             break

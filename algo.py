@@ -205,7 +205,7 @@ class Window(tk.Frame):
 
     def get_color_pixel_at_pos(self, x, y):
         r, g, b = self.rgb_img.getpixel((x, y))
-        print(r, g, b, flush=True)
+        # print(r, g, b, flush=True)
         return r, g, b
 
     def is_robot_cursor_collide(self):
@@ -319,23 +319,14 @@ class Window(tk.Frame):
             self.goal_point_defined = True
             self.launch_game()
 
-    def is_win(self, calc):
-        if calc.x == self.goal_coordinate.x and calc.y == self.goal_coordinate.y:
-            print("ITS WIN")
-            return True
-        else:
-            print("ITS LOOSE")
-            return False
-
     def move(self):
         calc = Vector(self.start_coordinate.x, self.start_coordinate.y)
-        calc.x = self.start_coordinate.x + 10  # + or - depend on direction
+        calc.x = self.start_coordinate.x + 0  # + or - depend on direction
         calc.y = self.start_coordinate.y + 0  # + or - depend on direction
         self.canvas.coords(self.image_robot, calc.x, calc.y)
         self.update_robot_hitbox()
         print("New pos X:", calc.x)
         print("New pos Y:", calc.y)
-        # self.is_win(calc)
         # loop in this function
 
     def move_robot_on_path_current_pos(self, index):
@@ -443,7 +434,6 @@ class Window(tk.Frame):
                                              y + middle, fill="black", width=1)
             if (count % 1000 == 0):
                 self.canvas.update()
-        print((len(self.store_cobs_coords)))
 
     def launch_rrt(self):
         print("Start RTT REEDS")
@@ -458,28 +448,76 @@ class Window(tk.Frame):
                                                  [0, self.goal_coordinate.x], Window.MAP_SIZE_X, Window.MAP_SIZE_Y, max_iter=50)
         path = rrt_star_reeds_shepp.planning(animation=show_animation)
 
-        if path and show_animation:  # pragma: no cover
+        if path and show_animation:
             rrt_star_reeds_shepp.draw_graph()
             plt.plot([x for (x, y, yaw) in path], [
                      y for (x, y, yaw) in path], '-r')
             plt.grid(True)
             plt.pause(0.001)
-            plt.show()
+            plt.show(block=False)
+
+    def move_robot_on_path_current_pos_sprm(self, index):
+        self.currentPos = self.solutionPath[index]
+        print("X", self.currentPos[0])
+        print("Y", self.currentPos[1])
+        self.canvas.coords(
+            self.image_robot, self.currentPos[0], self.currentPos[1])
+        self.canvas.update()
+        time.sleep(1)
+
+    def set_init_solution_path_sprm(self, rx, ry):
+        self.solutionPath.append(self.start_coordinate)
+        for i in range(1, len(rx) - 1):
+            self.solutionPath.append((int(rx[i]), int(ry[i])))
+        self.solutionPath.append(self.goal_coordinate)
+        self.solutionPath.reverse()
+
+    def draw_path_sprm(self, rx, ry):
+        start_x = self.start_coordinate.x
+        start_y = self.start_coordinate.y
+        self.blue_circle = self.canvas.create_circle(
+            self.start_coordinate.x, self.start_coordinate.y, Window.CIRCLE_SIZE, fill="blue", width=1)
+        for i in range(1, len(rx) - 1):
+            self.path_line = self.canvas.create_line(rx[i], ry[i],
+                                                     rx[i + 1], ry[i + 1], fill='red', tag="line")
+        self.canvas.delete(self.rectangle_robot_hitbox)
+
+    def calc_path_sprm(self, rx, ry):
+        self.set_init_solution_path_sprm(rx, ry)
+        self.solutionPath = list(dict.fromkeys(self.solutionPath))
+
+    def draw_robot_following_path_sprm(self):
+        for i in range(1, (len(self.solutionPath) - 1)):
+            self.move_robot_on_path_current_pos_sprm(int(i))
+        self.canvas.delete(self.goal_circle)
+        self.canvas.update()
+        time.sleep(1)
+
+    def reset_before_path_sprm(self):
+        self.canvas.coords(
+            self.image_robot, self.start_coordinate.x, self.start_coordinate.y)
+        self.update_robot_hitbox()
+        self.canvas.update()
+        self.canvas.delete(self.blue_circle)
+        self.canvas.delete(self.path_line)
+        self.goal_circle = self.canvas.create_circle(
+            self.goal_coordinate.x, self.goal_coordinate.y, Window.CIRCLE_SIZE, fill="yellow", width=1)
+        self.solutionPath = []
+        self.canvas.delete("line")
+
+    def show_solution_workspace(self, rx, ry):
+        self.draw_path_sprm(rx, ry)
+        self.calc_path_sprm(rx, ry)
+        self.draw_robot_following_path_sprm()
+        self.reset_before_path_sprm()
 
     def launch_sprm(self):
         print("STARTING SPRM")
-        # // TODO COMMENCER PAR LES MACROS
-        # //TODO PERSONNALISER LES (inverser) AXES COMME SUR LE RTT, PUSH LES COORDONNES OX et OY, CASTER LES VALEURS DEPARTS, ENVOYER LES MACRO ET MODIFIER DANS LAUTRE FICHIER
-        # TIMER TEMPS EXECUTION ALGO
-        # RECUPERER LE CHEMIN ROUGE ET FAIRE SUIVRE LE ROBOT DESSUS
-        # start and goal position
-        sx = self.start_coordinate.x  # [m]
-        sy = self.start_coordinate.y  # [m]
-        gx = self.goal_coordinate.x  # [m]
-        gy = self.goal_coordinate.y  # [m]
-        robot_size = 20.0  # [m]
-
-        # timer le truc
+        sx = self.start_coordinate.x
+        sy = self.start_coordinate.y
+        gx = self.goal_coordinate.x
+        gy = self.goal_coordinate.y
+        robot_size = 20.0
 
         if show_animation:
             plt.plot(self.sprm_ox, self.sprm_oy, ".k")
@@ -489,25 +527,28 @@ class Window(tk.Frame):
             plt.gca().invert_yaxis()
             plt.grid(True)
 
+        start = time.time()
         rx, ry = PRM_planning(sx, sy, gx, gy, self.sprm_ox, self.sprm_oy, robot_size,
                               int(self.nb_samples_sprm), int(self.nb_edges_sprm))
 
+        end = time.time()
+        print("Time of execution SPRM: %d seconds" % (end - start))
+        self.finish_algo = True
         assert rx, 'Cannot found path'
 
         if show_animation:
             plt.plot(rx, ry, "-r")
             plt.show(block=False)
-            print("15 sec before closing")
-            time.sleep(15)
-            plt.close('all')
-            self.finish_algo = True
-        print("END SPRM MAIN PGRM")
+
+        print("END SPRM")
+        self.show_solution_workspace(rx, ry)
+        print("END SHOW SOLUTION")
 
     def get_sprm_form_values(self):
         self.nb_samples_sprm = self.nb_samples_sprm.get()
         self.nb_edges_sprm = self.nb_edges_sprm.get()
-        print("VALUE SAMPLES:", self.nb_samples_sprm)
-        print("VALUE EDGES:", self.nb_edges_sprm)
+        print("Number of SAMPLES:", int(self.nb_samples_sprm))
+        print("Number of EDGES:", int(self.nb_edges_sprm))
         self.sprm_form_canv.destroy()
         self.sprm_form_root.destroy()
         self.launch_sprm()
@@ -583,9 +624,7 @@ class Window(tk.Frame):
             self.compute_map_configspace()
             self.draw_configspace_init()
             self.show_algorithms()
-            print("DONE")
-            # self.launch_rrt()
-            print("END RRT")
+            print("END DRAWING COBS")
 
     def launch_game(self):
         print("Launch Game")
@@ -594,8 +633,8 @@ class Window(tk.Frame):
         Vector.display_vector(self.start_coordinate)
         print("Coord Goal:")
         Vector.display_vector(self.goal_coordinate)
-        # self.open_dialog_path() REACTIVATE !!!!!
-        self.move()
+        self.open_dialog_path()  # REACTIVATE !!!!!
+        # self.move()
 
 
 if __name__ == '__main__':
