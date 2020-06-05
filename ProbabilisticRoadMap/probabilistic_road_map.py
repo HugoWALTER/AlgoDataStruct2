@@ -315,8 +315,10 @@ def main():
         plt.plot(ox, oy, ".k")
         plt.plot(sx, sy, "^r")
         plt.plot(gx, gy, "^c")
+        plt.gca().invert_yaxis()
+        plt.gca().xaxis.tick_top()
         plt.grid(True)
-        plt.axis("equal")
+        # plt.axis("equal")
 
     rx, ry = PRM_planning(sx, sy, gx, gy, ox, oy, robot_size, 500, 10)
 
@@ -324,7 +326,7 @@ def main():
 
     if show_animation:
         plt.plot(rx, ry, "-r")
-        plt.show()
+        plt.show(block=False)
 
 
 if __name__ == '__main__':

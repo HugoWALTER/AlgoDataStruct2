@@ -525,6 +525,7 @@ class Window(tk.Frame):
             plt.plot(gx, gy, "^m")
             plt.axis([0, Window.MAP_SIZE_X, 0, Window.MAP_SIZE_Y])
             plt.gca().invert_yaxis()
+            plt.gca().xaxis.tick_top()
             plt.grid(True)
 
         start = time.time()
