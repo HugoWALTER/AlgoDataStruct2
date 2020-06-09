@@ -33,14 +33,14 @@ class RRTStar(RRT):
             super().__init__(x, y)
             self.cost = 0.0
 
-    def __init__(self, start, goal, obstacle_list, rand_area,
+    def __init__(self, window_x, window_y, start, goal, obstacle_list, rand_area,
                  expand_dis=30.0,
                  path_resolution=1.0,
                  goal_sample_rate=20,
-                 max_iter=300,
+                 max_iter=400,
                  connect_circle_dist=50.0
                  ):
-        super().__init__(start, goal, obstacle_list,
+        super().__init__(window_x, window_y, start, goal, obstacle_list,
                          rand_area, expand_dis, path_resolution, goal_sample_rate, max_iter)
         """
         Setting Parameter
@@ -185,19 +185,21 @@ def main():
     # ====Search Path with RRT====
     obstacle_list = [
         (5, 5, 1),
-        (3, 6, 2),
-        (3, 8, 2),
-        (3, 10, 2),
-        (7, 5, 2),
-        (9, 5, 2),
+        (3, 6, 1),
+        (3, 8, 1),
+        (3, 10, 1),
+        (7, 5, 1),
+        (9, 5, 1),
         (8, 10, 1),
         (6, 12, 1),
     ]  # [x,y,size(radius)]
 
     # Set Initial parameters
-    rrt_star = RRTStar(start=[1, 1],
+    rrt_star = RRTStar(window_x=15,
+                       window_y=15,
+                       start=[1, 1],
                        goal=[6, 10],
-                       rand_area=[0, 15],
+                       rand_area=[1, 6],
                        obstacle_list=obstacle_list)
     path = rrt_star.planning(animation=show_animation)
 

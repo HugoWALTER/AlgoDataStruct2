@@ -15,12 +15,15 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)) +
                 "./RRTStarReedsShepp/")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) +
                 "./ProbabilisticRoadMap/")
-
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) +
+                "./RRTStar/")
 try:
     import RRTStarReedsShepp
     import ProbabilisticRoadMap
+    import RRTStar
     from rrt_star_reeds_shepp import RRTStarReedsShepp
     from probabilistic_road_map import PRM_planning
+    from rrt_star import RRTStar
 except ImportError:
     raise
 
@@ -435,7 +438,7 @@ class Window(tk.Frame):
             if (count % 1000 == 0):
                 self.canvas.update()
 
-    def launch_rrt(self):
+    def launch_rrt_reeds(self):
         print("Start RTT REEDS")
 
         start = [float(self.start_coordinate.x),
@@ -456,12 +459,51 @@ class Window(tk.Frame):
             plt.pause(0.001)
             plt.show(block=False)
 
+    def launch_rrt(self):
+        print("Starting RRT")  # fix pb rrt
+        if (self.start_coordinate.x > self.goal_coordinate.x):
+            minX = self.goal_coordinate.x
+            maxX = self.start_coordinate.x
+        else:
+            minX = self.start_coordinate.x
+            maxX = self.goal_coordinate.x
+
+        print("MINX:", minX)
+        print("MAXX:", maxX)
+        print("Len obstacle:", len(self.store_cobs_coords))
+        start = time.time()
+        rrt_star = RRTStar(window_x=Window.MAP_SIZE_X,
+                           window_y=Window.MAP_SIZE_Y,
+                           start=[self.start_coordinate.x,
+                                  self.start_coordinate.y],
+                           goal=[self.goal_coordinate.x,
+                                 self.goal_coordinate.y],
+                           rand_area=[0, 500],
+                           obstacle_list=self.store_cobs_coords)
+        print("calc rrt done")
+        path = rrt_star.planning(animation=show_animation)
+        print("path done")
+        end = time.time()
+        print("Time of execution RRT: %d seconds" % (end - start))
+
+        if path is None:
+            print("Cannot find path")
+        else:
+            print("found path!!")
+
+        # Draw final path
+        if show_animation:
+            rrt_star.draw_graph()
+            plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
+            plt.grid(True)
+            plt.pause(0.01)  # Need for Mac
+            plt.show()
+        print("End RRT")
+
     def move_robot_on_path_current_pos_sprm(self, index):
         self.currentPos = self.solutionPath[index]
-        # print("X", self.currentPos[0])
-        # print("Y", self.currentPos[1])
         self.canvas.coords(
-            self.image_robot, self.currentPos[0], self.currentPos[1])
+            self.image_robot, int(self.currentPos[0]), int(self.currentPos[1]))
         self.canvas.update()
         time.sleep(0.5)
 
@@ -478,8 +520,8 @@ class Window(tk.Frame):
         self.blue_circle = self.canvas.create_circle(
             self.start_coordinate.x, self.start_coordinate.y, Window.CIRCLE_SIZE, fill="blue", width=1)
         for i in range(1, len(rx) - 1):
-            self.path_line = self.canvas.create_line(rx[i], ry[i],
-                                                     rx[i + 1], ry[i + 1], fill='red', tag="line")
+            self.path_line = self.canvas.create_line(int(rx[i]), int(ry[i]),
+                                                     int(rx[i + 1]), int(ry[i + 1]), fill='red', tag="line")
         self.canvas.delete(self.rectangle_robot_hitbox)
 
     def calc_path_sprm(self, rx, ry):
@@ -503,9 +545,16 @@ class Window(tk.Frame):
         self.goal_circle = self.canvas.create_circle(
             self.goal_coordinate.x, self.goal_coordinate.y, Window.CIRCLE_SIZE, fill="yellow", width=1)
         self.solutionPath = []
+        self.currentPos = (0, 0)
+        self.canvas.delete("line")
+
+    def reset_value_sprm(self):
+        self.solutionPath = []
+        self.currentPos = (0, 0)
         self.canvas.delete("line")
 
     def show_solution_workspace(self, rx, ry):
+        self.reset_value_sprm()
         self.draw_path_sprm(rx, ry)
         self.calc_path_sprm(rx, ry)
         self.draw_robot_following_path_sprm()
@@ -549,13 +598,13 @@ class Window(tk.Frame):
         self.nb_samples_sprm = self.nb_samples_sprm.get()
         self.nb_edges_sprm = self.nb_edges_sprm.get()
         print("Number of SAMPLES:", int(self.nb_samples_sprm))
-        print("Number of EDGES:", int(self.nb_edges_sprm))
+        print("Number of RADIUS:", int(self.nb_edges_sprm))
         self.sprm_form_canv.destroy()
         self.sprm_form_root.destroy()
         self.launch_sprm()
 
     def open_form_sprm(self):
-        print("OPEN FORM")
+        print("OPEN SPRM FORM")
         self.sprm_form_root = tk.Tk()
         self.sprm_form_root.title("SPRM FORM")
 
@@ -571,7 +620,7 @@ class Window(tk.Frame):
         self.sprm_form_canv.create_window(
             200, 40, window=self.nb_samples_sprm)
 
-        label_edges = tk.Label(self.sprm_form_root, text='Number of Edges:')
+        label_edges = tk.Label(self.sprm_form_root, text='Number of Radius:')
         self.sprm_form_canv.create_window(200, 100, window=label_edges)
 
         self.nb_edges_sprm = tk.Entry(self.sprm_form_root)
@@ -590,11 +639,12 @@ class Window(tk.Frame):
             return
         if (value == 0 and self.finish_algo is True):
             print("launch SPRM")
+            self.finish_algo = False
             self.open_form_sprm()
-            self.finish_algo = False
         if (value == 1 and self.finish_algo is True):
-            print("launch RTT")
+            print("launch RRT")
             self.finish_algo = False
+            self.launch_rrt()
         if (value == 2 and self.finish_algo is True):
             print("launch RTT REEDS")
             self.finish_algo = False

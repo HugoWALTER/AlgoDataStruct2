@@ -32,7 +32,7 @@ class RRT:
             self.path_y = []
             self.parent = None
 
-    def __init__(self, start, goal, obstacle_list, rand_area,
+    def __init__(self, window_x, window_y, start, goal, obstacle_list, rand_area,
                  expand_dis=3.0, path_resolution=0.5, goal_sample_rate=5, max_iter=500):
         """
         Setting Parameter
@@ -52,6 +52,8 @@ class RRT:
         self.goal_sample_rate = goal_sample_rate
         self.max_iter = max_iter
         self.obstacle_list = obstacle_list
+        self.window_x = window_x
+        self.window_y = window_y
         self.node_list = []
 
     def planning(self, animation=True):
@@ -135,6 +137,7 @@ class RRT:
                             random.uniform(self.min_rand, self.max_rand))
         else:  # goal point sampling
             rnd = self.Node(self.end.x, self.end.y)
+        print(rnd.x, rnd.y)
         return rnd
 
     def draw_graph(self, rnd=None):
@@ -149,12 +152,14 @@ class RRT:
                 plt.plot(node.path_x, node.path_y, "-g")
 
         for (ox, oy, size) in self.obstacle_list:
+            # plt.plot(ox, oy, "ok", ms=30 * size)
             self.plot_circle(ox, oy, size)
 
-        plt.plot(self.start.x, self.start.y, "xr")
-        plt.plot(self.end.x, self.end.y, "xr")
-        plt.axis("equal")
-        plt.axis([-2, 15, -2, 15])
+        plt.plot(self.start.x, self.start.y, "^r")
+        plt.plot(self.end.x, self.end.y, "^c")
+        plt.axis([0, self.window_x, 0, self.window_y])
+        plt.gca().invert_yaxis()
+        plt.gca().xaxis.tick_top()
         plt.grid(True)
         plt.pause(0.01)
 
@@ -200,20 +205,23 @@ class RRT:
 
 
 def main(gx=6.0, gy=10.0):
-    print("start " + __file__)
+    print("start rrt" + __file__)
 
     # ====Search Path with RRT====
     obstacleList = [
-        (5, 5, 1),
-        (3, 6, 1),
-        (3, 8, 1),
-        (3, 10, 1),
-        (7, 5, 1),
-        (9, 5, 1),
-        (8, 10, 1)
+        (5, 5, 0.5),
+        (3, 6, 0.5),
+        (3, 8, 0.5),
+        (3, 10, 0.5),
+        (7, 5, 0.5),
+        (9, 5, 0.5),
+        (8, 10, 0.5)
     ]  # [x, y, radius]
     # Set Initial parameters
-    rrt = RRT(start=[0, 0],
+    # rand area entre start x et goal x vérifier la val max avant d'envoyer le min
+    rrt = RRT(window_x=15,
+              window_y=15,
+              start=[1, 1],
               goal=[gx, gy],
               rand_area=[0, 15],
               obstacle_list=obstacleList)

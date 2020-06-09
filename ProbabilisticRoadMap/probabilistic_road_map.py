@@ -3,6 +3,7 @@
 Probablistic Road Map (PRM) Planner
 
 author: Atsushi Sakai (@Atsushi_twi)
+Adapted & Modified by: Hugo WALTER (@HugoWALTER)
 
 """
 
@@ -159,17 +160,7 @@ def generate_roadmap(sample_x, sample_y, rr, obkdtree, edges):
 
 def dijkstra_planning(sx, sy, gx, gy, ox, oy, rr, road_map, sample_x, sample_y):
     """
-    sx: start x position [m]
-    sy: start y position [m]
-    gx: goal x position [m]
-    gy: goal y position [m]
-    ox: x position list of Obstacles [m]
-    oy: y position list of Obstacles [m]
-    rr: robot radius [m]
-    road_map: ??? [m]
-    sample_x: ??? [m]
-    sample_y: ??? [m]
-
+    Dijkstra algorithm
     @return: Two lists of path coordinates ([x1, x2, ...], [y1, y2, ...]), empty list when no path was found
     """
 
@@ -283,11 +274,11 @@ def main():
     print(__file__ + " start!!")
 
     # start and goal position
-    sx = 10.0  # [m]
-    sy = 10.0  # [m]
-    gx = 50.0  # [m]
-    gy = 50.0  # [m]
-    robot_size = 5.0  # [m]
+    sx = 10.0
+    sy = 10.0
+    gx = 50.0
+    gy = 50.0
+    robot_size = 5.0
 
     ox = []
     oy = []
@@ -318,11 +309,10 @@ def main():
         plt.gca().invert_yaxis()
         plt.gca().xaxis.tick_top()
         plt.grid(True)
-        # plt.axis("equal")
 
     rx, ry = PRM_planning(sx, sy, gx, gy, ox, oy, robot_size, 500, 10)
 
-    assert rx, 'Cannot found path'
+    assert rx, 'Cannot found path!'
 
     if show_animation:
         plt.plot(rx, ry, "-r")
