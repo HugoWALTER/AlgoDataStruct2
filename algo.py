@@ -12,18 +12,10 @@ import sys
 import matplotlib.pyplot as plt
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) +
-                "./RRTStarReedsShepp/")
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) +
                 "./ProbabilisticRoadMap/")
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) +
-                "./RRTStar/")
 try:
-    import RRTStarReedsShepp
     import ProbabilisticRoadMap
-    import RRTStar
-    from rrt_star_reeds_shepp import RRTStarReedsShepp
     from probabilistic_road_map import PRM_planning
-    from rrt_star import RRTStar
 except ImportError:
     raise
 
@@ -91,6 +83,7 @@ class Window(tk.Frame):
         self.solutionPath = []
         self.currentPos = (0, 0)
         self.store_cobs_coords = []
+        self.store_cobs_coords_rrt = []
         self.number_algo = None
         self.finish_algo = True
         self.nb_samples_sprm = 0
@@ -124,6 +117,7 @@ class Window(tk.Frame):
         self.solutionPath = []
         self.currentPos = (0, 0)
         self.store_cobs_coords = []
+        self.store_cobs_coords_rrt = []
         self.canvas.delete("all")
         self.canvas.bind("<Motion>", self.circle_cursor_placement)
         self.number_algo = None
@@ -283,7 +277,6 @@ class Window(tk.Frame):
         # print("hitbox: Y1", self.hitbox_robot[1])
         # print("hitbox: X2", self.hitbox_robot[2])
         # print("hitbox: Y2", self.hitbox_robot[3])
-        # TODO: move hitbox when robot is moving
         self.rectangle_robot_hitbox = self.canvas.create_rectangle(
             self.hitbox_robot, outline="red", width=2)
 
@@ -295,7 +288,6 @@ class Window(tk.Frame):
         # print("hitbox: Y1", self.hitbox_robot[1])
         # print("hitbox: X2", self.hitbox_robot[2])
         # print("hitbox: Y2", self.hitbox_robot[3])
-        # TODO: move hitbox when robot is moving
         self.rectangle_robot_hitbox = self.canvas.create_rectangle(
             self.hitbox_robot, outline="red", width=2)
 
@@ -428,6 +420,7 @@ class Window(tk.Frame):
                                                                                 or (self.is_pixel_approx_white(array[y-1][x+1], 30) == 'white'))):
                     coords.append((x, y))
                     self.store_cobs_coords.append((x, y, 0.4))
+                    self.store_cobs_coords_rrt.append((x, y, 1))
                     self.sprm_ox.append(x)
                     self.sprm_oy.append(y)
         for count, item in enumerate(coords):
@@ -438,66 +431,13 @@ class Window(tk.Frame):
             if (count % 1000 == 0):
                 self.canvas.update()
 
-    def launch_rrt_reeds(self):
-        print("Start RTT REEDS")
-
-        start = [float(self.start_coordinate.x),
-                 float(self.start_coordinate.y), np.deg2rad(0.0)]
-        goal = [float(self.goal_coordinate.x),
-                float(self.goal_coordinate.y), np.deg2rad(90.0)]
-
-        rrt_star_reeds_shepp = RRTStarReedsShepp(start, goal,
-                                                 self.store_cobs_coords,
-                                                 [0, self.goal_coordinate.x], Window.MAP_SIZE_X, Window.MAP_SIZE_Y, max_iter=50)
-        path = rrt_star_reeds_shepp.planning(animation=show_animation)
-
-        if path and show_animation:
-            rrt_star_reeds_shepp.draw_graph()
-            plt.plot([x for (x, y, yaw) in path], [
-                     y for (x, y, yaw) in path], '-r')
-            plt.grid(True)
-            plt.pause(0.001)
-            plt.show(block=False)
-
     def launch_rrt(self):
-        print("Starting RRT")  # fix pb rrt
-        if (self.start_coordinate.x > self.goal_coordinate.x):
-            minX = self.goal_coordinate.x
-            maxX = self.start_coordinate.x
-        else:
-            minX = self.start_coordinate.x
-            maxX = self.goal_coordinate.x
-
-        print("MINX:", minX)
-        print("MAXX:", maxX)
-        print("Len obstacle:", len(self.store_cobs_coords))
+        print("Starting RRT")
         start = time.time()
-        rrt_star = RRTStar(window_x=Window.MAP_SIZE_X,
-                           window_y=Window.MAP_SIZE_Y,
-                           start=[self.start_coordinate.x,
-                                  self.start_coordinate.y],
-                           goal=[self.goal_coordinate.x,
-                                 self.goal_coordinate.y],
-                           rand_area=[0, 500],
-                           obstacle_list=self.store_cobs_coords)
-        print("calc rrt done")
-        path = rrt_star.planning(animation=show_animation)
-        print("path done")
+        os.system('python ./RRT/rrt.py')
         end = time.time()
         print("Time of execution RRT: %d seconds" % (end - start))
-
-        if path is None:
-            print("Cannot find path")
-        else:
-            print("found path!!")
-
-        # Draw final path
-        if show_animation:
-            rrt_star.draw_graph()
-            plt.plot([x for (x, y) in path], [y for (x, y) in path], '-r')
-            plt.grid(True)
-            plt.pause(0.01)  # Need for Mac
-            plt.show()
+        self.finish_algo = True
         print("End RRT")
 
     def move_robot_on_path_current_pos_sprm(self, index):
@@ -646,7 +586,7 @@ class Window(tk.Frame):
             self.finish_algo = False
             self.launch_rrt()
         if (value == 2 and self.finish_algo is True):
-            print("launch RTT REEDS")
+            print("launch GAUSSIAN")
             self.finish_algo = False
 
     def show_algorithms(self):
@@ -656,7 +596,7 @@ class Window(tk.Frame):
         algorithms = [
             ("SPRM"),
             ("RTT"),
-            ("RTT_REEDS")
+            ("GAUSSIAN")
         ]
 
         tk.Label(self.master,
@@ -688,7 +628,7 @@ class Window(tk.Frame):
         Vector.display_vector(self.start_coordinate)
         print("Coord Goal:")
         Vector.display_vector(self.goal_coordinate)
-        self.open_dialog_path()  # REACTIVATE !!!!!
+        self.open_dialog_path()
         # self.move()
 
 

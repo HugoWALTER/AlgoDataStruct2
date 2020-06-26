@@ -1,12 +1,3 @@
-"""
-
-Probablistic Road Map (PRM) Planner
-
-author: Atsushi Sakai (@Atsushi_twi)
-Adapted & Modified by: Hugo WALTER (@HugoWALTER)
-
-"""
-
 import random
 import math
 import numpy as np
@@ -20,10 +11,6 @@ show_animation = True
 
 
 class Node:
-    """
-    Node class for dijkstra search
-    """
-
     def __init__(self, x, y, cost, pind):
         self.x = x
         self.y = y
@@ -35,23 +22,12 @@ class Node:
 
 
 class KDTree:
-    """
-    Nearest neighbor search class with KDTree
-    """
-
     def __init__(self, data):
         # store kd-tree
         self.tree = scipy.spatial.cKDTree(data)
 
     def search(self, inp, k=1):
-        """
-        Search NN
-
-        inp: input data, single frame or multi frame
-
-        """
-
-        if len(inp.shape) >= 2:  # multi input
+        if len(inp.shape) >= 2:
             index = []
             dist = []
 
@@ -66,10 +42,6 @@ class KDTree:
         return index, dist
 
     def search_in_distance(self, inp, r):
-        """
-        find points with in a distance r
-        """
-
         index = self.tree.query_ball_point(inp, r)
         return index
 
@@ -120,15 +92,6 @@ def is_collision(sx, sy, gx, gy, rr, okdtree):
 
 
 def generate_roadmap(sample_x, sample_y, rr, obkdtree, edges):
-    """
-    Road map generation
-
-    sample_x: [m] x positions of sampled points
-    sample_y: [m] y positions of sampled points
-    rr: Robot Radius[m]
-    obkdtree: KDTree object of obstacles
-    """
-
     road_map = []
     nsample = len(sample_x)
     skdtree = KDTree(np.vstack((sample_x, sample_y)).T)
@@ -153,17 +116,10 @@ def generate_roadmap(sample_x, sample_y, rr, obkdtree, edges):
 
         road_map.append(edge_id)
 
-    #  plot_road_map(road_map, sample_x, sample_y)
-
     return road_map
 
 
 def dijkstra_planning(sx, sy, gx, gy, ox, oy, rr, road_map, sample_x, sample_y):
-    """
-    Dijkstra algorithm
-    @return: Two lists of path coordinates ([x1, x2, ...], [y1, y2, ...]), empty list when no path was found
-    """
-
     nstart = Node(sx, sy, 0.0, -1)
     ngoal = Node(gx, gy, 0.0, -1)
 
@@ -234,7 +190,7 @@ def dijkstra_planning(sx, sy, gx, gy, ox, oy, rr, road_map, sample_x, sample_y):
     return rx, ry
 
 
-def plot_road_map(road_map, sample_x, sample_y):  # pragma: no cover
+def plot_road_map(road_map, sample_x, sample_y):
 
     for i, _ in enumerate(road_map):
         for ii in range(len(road_map[i])):
