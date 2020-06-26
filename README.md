@@ -16,6 +16,7 @@
 -   [TKinter]
 -   [Pillow]
 -   [Scipy]
+-   [Matplotlib]
 
 
 ## Build Setup
@@ -30,6 +31,8 @@ $ git clone https://github.com/HugoWALTER/AlgoDataStruct2
 # install dependencies
 $ pip install Pillow
 $ pip install Tkinter
+$ pip install scipy
+$ pip install matplotlib
 
 # launch the programm
 $ python ./algo.py
